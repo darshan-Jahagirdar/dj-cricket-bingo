@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ's Cricket Bingo Pro</title>
+    <meta name="description" content="Play DJ's Cricket Bingo! The ultimate 1v1 cricket grid game.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1099/1099672.png">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+
+    <div id="rulesModal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h2>📜 GAME RULES</h2>
+            <div class="rules-list">
+                <p><strong>1. GOAL:</strong> Match the <span class="highlight-text">Target Name</span> at the top to a
+                    tile on the grid.</p>
+                <p><strong>2. CONNECTION:</strong> Match by <strong>Team</strong> (played for same team) or
+                    <strong>Teammate</strong>.
+                </p>
+                <p><strong>3. LIMITS:</strong> You have <strong>21 Turns</strong> to clear <strong>16 Tiles</strong>.
+                </p>
+                <p><strong>4. SKIPS:</strong> You have <strong>5 Skips</strong>. Use them wisely!</p>
+                <p><strong>5. LOSE:</strong> If you run out of turns before clearing the grid, you lose.</p>
+            </div>
+            <button id="rulesOkBtn" class="btn primary full-width">OK, LET'S PLAY!</button>
+        </div>
+    </div>
+
+    <div id="gameModal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h2 id="modalTitle">GAME OVER</h2>
+
+            <div class="rank-container">
+                <span class="rank-label">YOUR RANK</span>
+                <div id="rankDisplay" class="rank-badge">...</div>
+            </div>
+
+            <p id="modalMessage">...</p>
+
+            <div class="modal-actions">
+                <button id="shareBtn" class="btn whatsapp-btn">📲 Share Result</button>
+                <button id="modalRestartBtn" class="btn primary">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="lobbyModal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h2>⚔️ 1v1 Arena</h2>
+            <div id="lobbyOptions">
+                <button id="createRoomBtn" class="btn primary">Create Room</button>
+                <div class="divider">OR</div>
+                <input type="text" id="roomCodeInput" placeholder="ENTER CODE" maxlength="6">
+                <button id="joinRoomBtn" class="btn secondary">Join Room</button>
+            </div>
+
+            <div id="waitingScreen" class="hidden">
+                <div class="loader"></div>
+                <h3>Waiting for Opponent...</h3>
+                <p>Room Code: <span id="displayRoomCode" class="highlight-code">...</span></p>
+                <button id="cancelLobbyBtn" class="btn danger">Cancel</button>
+            </div>
+
+            <button id="closeLobbyBtn" class="btn text-only">Back to Menu</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <header>
+            <h1>DJ's Cricket Bingo 🏏</h1>
+            <div class="target-wrapper">
+                <div id="targetPlayerHighlight">Select Mode</div>
+            </div>
+            <div id="roomInfoBar" class="hidden">Room: <span id="activeRoomCode"></span></div>
+        </header>
+
+        <div id="levelSelection" class="level-select-box">
+            <button id="multiplayerBtn" class="btn multi-btn">
+                <span class="icon">⚔️</span> 1v1 Multiplayer <span class="small">(Ranked)</span>
+            </button>
+
+            <div class="divider-text">SINGLE PLAYER</div>
+
+            <div class="level-grid">
+                <button class="btn level-btn" data-level="easy">
+                    <strong>Easy</strong>
+                    <span class="small">Relaxed</span>
+                </button>
+                <button class="btn level-btn" data-level="medium">
+                    <strong>Medium</strong>
+                    <span class="small">12s Timer</span>
+                </button>
+                <button class="btn level-btn" data-level="hard">
+                    <strong>Hard</strong>
+                    <span class="small">7s Timer</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="gameArea" class="hidden">
+            <div id="opponentBar" class="opponent-bar hidden">
+                <span class="opp-name">🔴 Opponent</span>
+                <span class="opp-score">Score: <span id="oppScore">0</span></span>
+            </div>
+
+            <div class="status-bar">
+                <div class="stat-item">
+                    <span class="label">Score</span>
+                    <span class="value" id="scoreValue">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Turns</span>
+                    <span class="value"><span id="turnsValue">21</span>/21</span>
+                </div>
+                <div class="stat-item timer">
+                    <span class="value" id="timerDisplay">--:--</span>
+                </div>
+            </div>
+
+            <div class="message-area" id="messageArea">Find the connection!</div>
+
+            <div class="bingo-grid" id="bingoGrid"></div>
+
+            <div class="controls">
+                <button id="nextTargetBtn" class="btn secondary">Skip (<span id="skipsCount">5</span>)</button>
+                <button id="quitBtn" class="btn danger">Quit</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
