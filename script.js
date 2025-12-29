@@ -28,10 +28,10 @@ lose: new Audio("https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.m
 },
 play(key) {
 try {
-    const s = this.sounds[key];
-    s.currentTime = 0;
-    s.volume = 0.4;
-    s.play().catch(() => { });
+const s = this.sounds[key];
+s.currentTime = 0;
+s.volume = 0.4;
+s.play().catch(() => { });
 } catch (e) { }
 }
 };
@@ -247,9 +247,9 @@ AudioController.play('pop');
 if (gameMode === 'multi') {
 // If just starting Multiplayer flow, open Lobby
 if (!roomCode) {
-    lobbyModal.classList.remove('hidden');
-    document.getElementById('lobbyOptions').classList.remove('hidden');
-    waitingScreen.classList.add('hidden');
+lobbyModal.classList.remove('hidden');
+document.getElementById('lobbyOptions').classList.remove('hidden');
+waitingScreen.classList.add('hidden');
 }
 } else if (pendingLevel) {
 startGame(pendingLevel);
@@ -276,26 +276,39 @@ location.reload();
 function createRoom() {
 roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 myPlayerId = 'p1';
-const seed = Math.floor(Math.random() * 1000000) + 1; // Ensure non-zero
+
+const seed = Math.floor(Math.random() * 1000000) + 1;
 
 const roomData = {
 code: roomCode,
-seed,
+seed: seed,
 status: 'waiting',
 createdAt: Date.now(),
 players: {
-p1: { score: 0, finished: false, finishTime: null, ready: true },
-p2: { score: 0, finished: false, finishTime: null, ready: false }
+  p1: {
+    score: 0,
+    finished: false,
+    finishTime: null,
+    ready: true
+  },
+  p2: {
+    score: 0,
+    finished: false,
+    finishTime: null,
+    ready: false
+  }
 }
 };
-
 
 db.ref('rooms/' + roomCode).set(roomData).then(() => {
 showWaitingScreen();
 listenToRoom();
+
+// cleanup if creator disconnects
 db.ref('rooms/' + roomCode + '/players/p1').onDisconnect().remove();
 });
 }
+
 
 function joinRoom() {
 roomCode = roomCodeInput.value.toUpperCase().trim();
@@ -309,7 +322,7 @@ if (room.status !== 'waiting') return alert("Game already started or full");
 myPlayerId = 'p2';
 
 db.ref('rooms/' + roomCode + '/players/p2').set({
-    score: 0, finished: false, ready: true
+score: 0, finished: false, ready: true
 });
 db.ref('rooms/' + roomCode).update({ status: 'active' });
 db.ref('rooms/' + roomCode + '/players/p2').onDisconnect().remove();
@@ -331,44 +344,44 @@ if (!room) return;
 
 // --- GAME START TRIGGER ---
 if (room.status === 'active' && document.getElementById('gameArea').classList.contains('hidden')) {
-    // Force close all menus
-    lobbyModal.classList.add('hidden');
-    rulesModal.classList.add('hidden');
-    levelScreen.classList.add('hidden');
-    gameArea.classList.remove('hidden');
+// Force close all menus
+lobbyModal.classList.add('hidden');
+rulesModal.classList.add('hidden');
+levelScreen.classList.add('hidden');
+gameArea.classList.remove('hidden');
 
-    gameMode = 'multi';
+gameMode = 'multi';
 
-    // Setup Seeded RNG
-    const seed = room.seed || 12345; // Fallback safety
-    const seededRng = new SeededRandom(seed);
-    rng = () => seededRng.next();
+// Setup Seeded RNG
+const seed = room.seed || 12345; // Fallback safety
+const seededRng = new SeededRandom(seed);
+rng = () => seededRng.next();
 
-    opponentBar.classList.remove('hidden');
-    roomInfoBar.classList.remove('hidden');
-    activeRoomCode.textContent = roomCode;
+opponentBar.classList.remove('hidden');
+roomInfoBar.classList.remove('hidden');
+activeRoomCode.textContent = roomCode;
 
-    startGame('medium');
+startGame('medium');
 }
 
 const oppId = myPlayerId === 'p1' ? 'p2' : 'p1';
 const oppData = room.players[oppId];
 
 if (!oppData && room.status === 'active') {
-    handleGameComplete(true, "Opponent disconnected!");
-    db.ref('rooms/' + roomCode).off();
-    return;
+handleGameComplete(true, "Opponent disconnected!");
+db.ref('rooms/' + roomCode).off();
+return;
 }
 
 if (oppData) {
-    cachedOpponentData = oppData;
-    document.getElementById('oppScore').textContent = oppData.score;
+cachedOpponentData = oppData;
+document.getElementById('oppScore').textContent = oppData.score;
 
-    if (room.players[myPlayerId].finished && oppData.finished && isGameOver) {
-        const myData = room.players[myPlayerId];
-        if (myPlayerId === 'p1') determineWinner(myData, oppData);
-        else determineWinner(oppData, myData);
-    }
+if (room.players[myPlayerId].finished && oppData.finished && isGameOver) {
+    const myData = room.players[myPlayerId];
+    if (myPlayerId === 'p1') determineWinner(myData, oppData);
+    else determineWinner(oppData, myData);
+}
 }
 });
 }
@@ -492,12 +505,12 @@ const isPlayer = rng() > 0.45;
 let content, type;
 
 if (isPlayer) {
-    const p = activePool[Math.floor(rng() * activePool.length)];
-    content = p.name;
-    type = 'player';
+const p = activePool[Math.floor(rng() * activePool.length)];
+content = p.name;
+type = 'player';
 } else {
-    content = availableTeams[Math.floor(rng() * availableTeams.length)];
-    type = 'team';
+content = availableTeams[Math.floor(rng() * availableTeams.length)];
+type = 'team';
 }
 
 if (usedContent.has(content)) continue;
@@ -533,13 +546,13 @@ return;
 const availablePlayers = activePool.filter(p => !usedTargets.has(p.name));
 const validCandidates = availablePlayers.filter(player => {
 return unclicked.some(tile => {
-    let matches = false;
-    if (tile.type === 'team') matches = player.teams.includes(tile.content);
-    else {
-        const tilePlayerObj = activePool.find(p => p.name === tile.content);
-        if (tilePlayerObj) matches = player.teams.some(t => tilePlayerObj.teams.includes(t));
-    }
-    return matches && player.name !== tile.content;
+let matches = false;
+if (tile.type === 'team') matches = player.teams.includes(tile.content);
+else {
+    const tilePlayerObj = activePool.find(p => p.name === tile.content);
+    if (tilePlayerObj) matches = player.teams.some(t => tilePlayerObj.teams.includes(t));
+}
+return matches && player.name !== tile.content;
 });
 });
 
@@ -579,15 +592,15 @@ timerEl.textContent = `${currentTime}`;
 if (currentTime <= 3) timerEl.classList.add("timer-warning");
 
 if (currentTime <= 0) {
-    clearInterval(timerInterval);
-    messageEl.textContent = "⏰ Time Up! (-1)";
-    messageEl.className = "message-area msg-error";
-    score--;
-    scoreEl.textContent = score;
-    AudioController.play('wrong');
-    if (navigator.vibrate) navigator.vibrate(200);
-    updateMultiplayerState();
-    setTimeout(pickNextTarget, 1000);
+clearInterval(timerInterval);
+messageEl.textContent = "⏰ Time Up! (-1)";
+messageEl.className = "message-area msg-error";
+score--;
+scoreEl.textContent = score;
+AudioController.play('wrong');
+if (navigator.vibrate) navigator.vibrate(200);
+updateMultiplayerState();
+setTimeout(pickNextTarget, 1000);
 }
 }, 1000);
 }
@@ -605,8 +618,8 @@ if (currentPlayer.teams.includes(cellData.content)) isMatch = true;
 } else {
 const clickedObj = activePool.find(p => p.name === cellData.content);
 if (clickedObj) {
-    const shared = currentPlayer.teams.filter(t => clickedObj.teams.includes(t));
-    if (shared.length > 0 || clickedObj.name === currentPlayer.name) isMatch = true;
+const shared = currentPlayer.teams.filter(t => clickedObj.teams.includes(t));
+if (shared.length > 0 || clickedObj.name === currentPlayer.name) isMatch = true;
 }
 }
 
@@ -643,10 +656,10 @@ const lines = [
 let bingo = false;
 lines.forEach(line => {
 if (line.every(idx => gridData[idx].status === 'correct')) {
-    line.forEach(idx => {
-        const c = gridEl.children[idx];
-        if (!c.classList.contains('bingo-line')) { c.classList.add('bingo-line'); bingo = true; }
-    });
+line.forEach(idx => {
+    const c = gridEl.children[idx];
+    if (!c.classList.contains('bingo-line')) { c.classList.add('bingo-line'); bingo = true; }
+});
 }
 });
 if (bingo) {
@@ -665,17 +678,17 @@ const finishTime = (Date.now() - gameStartTime) / 1000;
 updateMultiplayerState(true);
 
 if (cachedOpponentData && cachedOpponentData.finished) {
-    const myFinalData = { score: score, finished: true, finishTime: finishTime };
-    if (myPlayerId === 'p1') determineWinner(myFinalData, cachedOpponentData);
-    else determineWinner(cachedOpponentData, myFinalData);
+const myFinalData = { score: score, finished: true, finishTime: finishTime };
+if (myPlayerId === 'p1') determineWinner(myFinalData, cachedOpponentData);
+else determineWinner(cachedOpponentData, myFinalData);
 } else {
-    targetEl.textContent = "Waiting...";
-    document.getElementById('modalTitle').textContent = "FINISHED!";
-    document.getElementById('rankDisplay').textContent = "Waiting for Opponent...";
-    document.getElementById('modalMessage').textContent = `Your Score: ${score}`;
-    document.getElementById('gameModal').classList.remove('hidden');
-    document.getElementById('modalRestartBtn').style.display = 'none';
-    document.getElementById('shareBtn').style.display = 'none';
+targetEl.textContent = "Waiting...";
+document.getElementById('modalTitle').textContent = "FINISHED!";
+document.getElementById('rankDisplay').textContent = "Waiting for Opponent...";
+document.getElementById('modalMessage').textContent = `Your Score: ${score}`;
+document.getElementById('gameModal').classList.remove('hidden');
+document.getElementById('modalRestartBtn').style.display = 'none';
+document.getElementById('shareBtn').style.display = 'none';
 }
 return;
 }
@@ -741,8 +754,8 @@ messageEl.textContent = "Skipped Target";
 AudioController.play('pop');
 pickNextTarget();
 if (skipsLeft === 0) {
-    nextBtn.disabled = true;
-    nextBtn.innerHTML = "No Skips";
+nextBtn.disabled = true;
+nextBtn.innerHTML = "No Skips";
 }
 }
 });
@@ -756,3 +769,4 @@ location.reload();
 
 
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
+
