@@ -1,6 +1,8 @@
 // =================================================
 // 0. SETUP: FIREBASE & AUDIO
 // =================================================
+const USE_ASSOCIATIONS = true;
+
 
 // ✅ YOUR FIREBASE CONFIG
 const firebaseConfig = {
@@ -16,6 +18,25 @@ measurementId: "G-E8JW0QSLTT"
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+const playerNameToId = {
+  "Virat Kohli": "p_virat_kohli",
+  "Rohit Sharma": "p_rohit_sharma",
+  "MS Dhoni": "p_ms_dhoni",
+  "AB de Villiers": "p_ab_de_villiers",
+  "Faf du Plessis": "p_faf_du_plessis",
+  "Rishabh Pant": "p_rishabh_pant",
+  "Jasprit Bumrah": "p_jasprit_bumrah",
+  "Hardik Pandya": "p_hardik_pandya",
+  "Glenn Maxwell": "p_glenn_maxwell",
+  "David Warner": "p_david_warner",
+  "Kane Williamson": "p_kane_williamson",
+  "Steve Smith": "p_steve_smith",
+  "Chris Lynn": "p_chris_lynn",
+  "Marcus Stoinis": "p_marcus_stoinis",
+  "Aaron Finch": "p_aaron_finch"
+};
+
 
 // --- AUDIO CONTROLLER ---
 const AudioController = {
@@ -605,7 +626,24 @@ setTimeout(pickNextTarget, 1000);
 }, 1000);
 }
 
-function handleCellClick(cellEl, cellData) {
+async function areAssociated(playerAName, playerBName) {
+  if (!USE_ASSOCIATIONS) return null;
+
+  const idA = playerNameToId[playerAName];
+  const idB = playerNameToId[playerBName];
+
+  if (!idA || !idB) return null;
+
+  const snap = await db
+    .ref(`associations/merged/${idA}/${idB}`)
+    .once('value');
+
+  return snap.exists();
+}
+
+
+async function handleCellClick(cellEl, cellData) {
+
 if (cellData.clicked || isGameOver) return;
 if (timeLimit > 0 && currentTime <= 0) return;
 
@@ -618,8 +656,24 @@ if (currentPlayer.teams.includes(cellData.content)) isMatch = true;
 } else {
 const clickedObj = activePool.find(p => p.name === cellData.content);
 if (clickedObj) {
-const shared = currentPlayer.teams.filter(t => clickedObj.teams.includes(t));
-if (shared.length > 0 || clickedObj.name === currentPlayer.name) isMatch = true;
+// Player–Player validation
+const associationResult = await areAssociated(
+  currentPlayer.name,
+  clickedObj.name
+);
+
+if (associationResult !== null) {
+  isMatch = associationResult;
+} else {
+  // Fallback to old logic
+  const shared = currentPlayer.teams.filter(t =>
+    clickedObj.teams.includes(t)
+  );
+  if (shared.length > 0 || clickedObj.name === currentPlayer.name) {
+    isMatch = true;
+  }
+}
+
 }
 }
 
@@ -769,4 +823,5 @@ location.reload();
 
 
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
+
 
