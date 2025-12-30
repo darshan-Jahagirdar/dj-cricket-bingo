@@ -603,17 +603,30 @@ return;
 
 // ROBUST SELECTION
 const availablePlayers = activePool.filter(p => !usedTargets.has(p.name));
-const validCandidates = availablePlayers.filter(player => {
-return unclicked.some(tile => {
-let matches = false;
-if (tile.type === 'team') matches = player.teams.includes(tile.content);
-else {
-    const tilePlayerObj = activePool.find(p => p.name === tile.content);
-    if (tilePlayerObj) matches = player.teams.some(t => tilePlayerObj.teams.includes(t));
+let validCandidates;
+
+if (USE_ASSOCIATIONS) {
+  // TEMP: allow any unused player as target
+  validCandidates = availablePlayers.filter(
+    p => unclicked.some(tile => tile.content !== p.name)
+  );
+} else {
+  // OLD LOGIC (unchanged)
+  validCandidates = availablePlayers.filter(player => {
+    return unclicked.some(tile => {
+      let matches = false;
+      if (tile.type === 'team') {
+        matches = player.teams.includes(tile.content);
+      } else {
+        const tilePlayerObj = activePool.find(p => p.name === tile.content);
+        if (tilePlayerObj)
+          matches = player.teams.some(t => tilePlayerObj.teams.includes(t));
+      }
+      return matches && player.name !== tile.content;
+    });
+  });
 }
-return matches && player.name !== tile.content;
-});
-});
+
 
 if (validCandidates.length === 0) {
 handleGameComplete(false, "Deck exhausted!");
@@ -865,6 +878,7 @@ document.getElementById('modalRestartBtn').addEventListener('click', () => locat
 loadDifficultyPools().catch(err => {
   console.error("Failed to load difficulty pools", err);
 });
+
 
 
 
