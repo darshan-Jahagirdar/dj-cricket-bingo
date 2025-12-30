@@ -37,6 +37,27 @@ const playerNameToId = {
   "Aaron Finch": "p_aaron_finch"
 };
 
+let difficultyPools = {
+  easy: [],
+  medium: [],
+  hard: []
+};
+
+
+function loadDifficultyPools() {
+  return db.ref('difficulty').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (!data) throw new Error("Difficulty data missing");
+
+    difficultyPools.easy = data.easy || [];
+    difficultyPools.medium = data.medium || [];
+    difficultyPools.hard = data.hard || [];
+
+    console.log("Difficulty pools loaded:", difficultyPools);
+  });
+}
+
+
 
 // --- AUDIO CONTROLLER ---
 const AudioController = {
@@ -453,6 +474,17 @@ else AudioController.play('lose');
 // 5. GAME LOGIC (Fixed & Robust)
 // =================================================
 
+function makePlayerFromId(playerId) {
+  const name = Object.keys(playerNameToId)
+    .find(key => playerNameToId[key] === playerId);
+
+  return {
+    name,
+    teams: [] // teams are not used for player-player anymore
+  };
+}
+
+
 function startGame(level) {
 score = 0;
 skipsLeft = 5;
@@ -470,25 +502,31 @@ nextBtn.innerHTML = `Skip (<span id="skipsCount">${skipsLeft}</span>)`;
 clearInterval(timerInterval);
 
 // Populate Pool
-let poolSource = [];
+let selectedIds = [];
+
 if (level === 'easy') {
-timeLimit = 0;
-poolSource = [...easyPlayers, ...mediumPlayers.slice(0, 15), ...hardPlayers.slice(0, 15)];
+  selectedIds = [
+    ...difficultyPools.easy,
+    ...difficultyPools.medium.slice(0, 5)
+  ];
 } else if (level === 'medium') {
-timeLimit = 12;
-poolSource = [...mediumPlayers, ...easyPlayers, ...hardPlayers.slice(0, 10)];
+  selectedIds = [
+    ...difficultyPools.medium,
+    ...difficultyPools.easy.slice(0, 5)
+  ];
 } else if (level === 'hard') {
-timeLimit = 7;
-poolSource = [...hardPlayers, ...mediumPlayers, ...easyPlayers.slice(0, 10)];
+  selectedIds = [
+    ...difficultyPools.hard,
+    ...difficultyPools.medium.slice(0, 5)
+  ];
 }
 
-// Shuffle using current RNG (Math.random OR Seeded)
-activePool = shuffle(poolSource);
 
-// Deduplicate
-activePool = activePool.filter((player, index, self) =>
-index === self.findIndex((t) => (t.name === player.name))
+// Shuffle using current RNG (Math.random OR Seeded)
+activePool = shuffle(
+  selectedIds.map(makePlayerFromId)
 );
+
 
 // Ensure UI Switch
 levelScreen.classList.add('hidden');
@@ -823,5 +861,11 @@ location.reload();
 
 
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
+
+loadDifficultyPools().catch(err => {
+  console.error("Failed to load difficulty pools", err);
+});
+
+
 
 
