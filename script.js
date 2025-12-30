@@ -685,12 +685,14 @@ async function areAssociated(playerAName, playerBName) {
 
   if (!idA || !idB) return null;
 
-  const snap = await db
-    .ref(`associations/merged/${idA}/${idB}`)
-    .once('value');
+  const [snapAB, snapBA] = await Promise.all([
+    db.ref(`associations/merged/${idA}/${idB}`).once('value'),
+    db.ref(`associations/merged/${idB}/${idA}`).once('value')
+  ]);
 
-  return snap.exists();
+  return snapAB.exists() || snapBA.exists();
 }
+
 
 
 async function handleCellClick(cellEl, cellData) {
@@ -878,6 +880,7 @@ document.getElementById('modalRestartBtn').addEventListener('click', () => locat
 loadDifficultyPools().catch(err => {
   console.error("Failed to load difficulty pools", err);
 });
+
 
 
 
