@@ -20,41 +20,51 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const playerNameToId = {
-  "Virat Kohli": "p_virat_kohli",
-  "Rohit Sharma": "p_rohit_sharma",
-  "MS Dhoni": "p_ms_dhoni",
-  "AB de Villiers": "p_ab_de_villiers",
-  "Faf du Plessis": "p_faf_du_plessis",
-  "Rishabh Pant": "p_rishabh_pant",
-  "Jasprit Bumrah": "p_jasprit_bumrah",
-  "Hardik Pandya": "p_hardik_pandya",
-  "Glenn Maxwell": "p_glenn_maxwell",
-  "David Warner": "p_david_warner",
-  "Kane Williamson": "p_kane_williamson",
-  "Steve Smith": "p_steve_smith",
-  "Chris Lynn": "p_chris_lynn",
-  "Marcus Stoinis": "p_marcus_stoinis",
-  "Aaron Finch": "p_aaron_finch"
+"Virat Kohli": "p_virat_kohli",
+"Rohit Sharma": "p_rohit_sharma",
+"MS Dhoni": "p_ms_dhoni",
+"AB de Villiers": "p_ab_de_villiers",
+"Faf du Plessis": "p_faf_du_plessis",
+"Rishabh Pant": "p_rishabh_pant",
+"Jasprit Bumrah": "p_jasprit_bumrah",
+"Hardik Pandya": "p_hardik_pandya",
+"Glenn Maxwell": "p_glenn_maxwell",
+"David Warner": "p_david_warner",
+"Kane Williamson": "p_kane_williamson",
+"Steve Smith": "p_steve_smith",
+"Chris Lynn": "p_chris_lynn",
+"Marcus Stoinis": "p_marcus_stoinis",
+"Aaron Finch": "p_aaron_finch"
 };
 
+let playersById = {};
+
+function loadPlayers() {
+return db.ref('players').once('value').then(snapshot => {
+playersById = snapshot.val() || {};
+console.log("Players loaded:", playersById);
+});
+}
+
+
 let difficultyPools = {
-  easy: [],
-  medium: [],
-  hard: []
+easy: [],
+medium: [],
+hard: []
 };
 
 
 function loadDifficultyPools() {
-  return db.ref('difficulty').once('value').then(snapshot => {
-    const data = snapshot.val();
-    if (!data) throw new Error("Difficulty data missing");
+return db.ref('difficulty').once('value').then(snapshot => {
+const data = snapshot.val();
+if (!data) throw new Error("Difficulty data missing");
 
-    difficultyPools.easy = data.easy || [];
-    difficultyPools.medium = data.medium || [];
-    difficultyPools.hard = data.hard || [];
+difficultyPools.easy = data.easy || [];
+difficultyPools.medium = data.medium || [];
+difficultyPools.hard = data.hard || [];
 
-    console.log("Difficulty pools loaded:", difficultyPools);
-  });
+console.log("Difficulty pools loaded:", difficultyPools);
+});
 }
 
 
@@ -327,18 +337,18 @@ seed: seed,
 status: 'waiting',
 createdAt: Date.now(),
 players: {
-  p1: {
-    score: 0,
-    finished: false,
-    finishTime: null,
-    ready: true
-  },
-  p2: {
-    score: 0,
-    finished: false,
-    finishTime: null,
-    ready: false
-  }
+p1: {
+score: 0,
+finished: false,
+finishTime: null,
+ready: true
+},
+p2: {
+score: 0,
+finished: false,
+finishTime: null,
+ready: false
+}
 }
 };
 
@@ -420,9 +430,9 @@ cachedOpponentData = oppData;
 document.getElementById('oppScore').textContent = oppData.score;
 
 if (room.players[myPlayerId].finished && oppData.finished && isGameOver) {
-    const myData = room.players[myPlayerId];
-    if (myPlayerId === 'p1') determineWinner(myData, oppData);
-    else determineWinner(oppData, myData);
+const myData = room.players[myPlayerId];
+if (myPlayerId === 'p1') determineWinner(myData, oppData);
+else determineWinner(oppData, myData);
 }
 }
 });
@@ -475,14 +485,12 @@ else AudioController.play('lose');
 // =================================================
 
 function makePlayerFromId(playerId) {
-  const name = Object.keys(playerNameToId)
-    .find(key => playerNameToId[key] === playerId);
-
-  return {
-    name,
-    teams: [] // teams are not used for player-player anymore
-  };
+return {
+id: playerId,
+name: playersById[playerId]?.name || "Unknown"
+};
 }
+
 
 
 function startGame(level) {
@@ -505,26 +513,26 @@ clearInterval(timerInterval);
 let selectedIds = [];
 
 if (level === 'easy') {
-  selectedIds = [
-    ...difficultyPools.easy,
-    ...difficultyPools.medium.slice(0, 5)
-  ];
+selectedIds = [
+...difficultyPools.easy,
+...difficultyPools.medium.slice(0, 5)
+];
 } else if (level === 'medium') {
-  selectedIds = [
-    ...difficultyPools.medium,
-    ...difficultyPools.easy.slice(0, 5)
-  ];
+selectedIds = [
+...difficultyPools.medium,
+...difficultyPools.easy.slice(0, 5)
+];
 } else if (level === 'hard') {
-  selectedIds = [
-    ...difficultyPools.hard,
-    ...difficultyPools.medium.slice(0, 5)
-  ];
+selectedIds = [
+...difficultyPools.hard,
+...difficultyPools.medium.slice(0, 5)
+];
 }
 
 
 // Shuffle using current RNG (Math.random OR Seeded)
 activePool = shuffle(
-  selectedIds.map(makePlayerFromId)
+selectedIds.map(makePlayerFromId)
 );
 
 
@@ -551,6 +559,9 @@ return array;
 }
 
 function generateGrid() {
+
+
+
 gridEl.innerHTML = "";
 gridData = [];
 const usedContent = new Set();
@@ -565,8 +576,9 @@ let content, type;
 
 if (isPlayer) {
 const p = activePool[Math.floor(rng() * activePool.length)];
-content = p.name;
+content = p.id;
 type = 'player';
+
 } else {
 content = availableTeams[Math.floor(rng() * availableTeams.length)];
 type = 'team';
@@ -581,7 +593,10 @@ gridData.push(cellData);
 const cell = document.createElement('div');
 cell.classList.add('grid-cell');
 if (type === 'team') cell.classList.add('team-cell');
-cell.textContent = content;
+cell.textContent =
+cellData.type === 'player'
+? playersById[cellData.content].name
+: cellData.content;
 cell.addEventListener('click', () => handleCellClick(cell, cellData));
 gridEl.appendChild(cell);
 }
@@ -606,25 +621,25 @@ const availablePlayers = activePool.filter(p => !usedTargets.has(p.name));
 let validCandidates;
 
 if (USE_ASSOCIATIONS) {
-  // TEMP: allow any unused player as target
-  validCandidates = availablePlayers.filter(
-    p => unclicked.some(tile => tile.content !== p.name)
-  );
+// TEMP: allow any unused player as target
+validCandidates = availablePlayers.filter(
+p => unclicked.some(tile => tile.content !== p.name)
+);
 } else {
-  // OLD LOGIC (unchanged)
-  validCandidates = availablePlayers.filter(player => {
-    return unclicked.some(tile => {
-      let matches = false;
-      if (tile.type === 'team') {
-        matches = player.teams.includes(tile.content);
-      } else {
-        const tilePlayerObj = activePool.find(p => p.name === tile.content);
-        if (tilePlayerObj)
-          matches = player.teams.some(t => tilePlayerObj.teams.includes(t));
-      }
-      return matches && player.name !== tile.content;
-    });
-  });
+// OLD LOGIC (unchanged)
+validCandidates = availablePlayers.filter(player => {
+return unclicked.some(tile => {
+  let matches = false;
+  if (tile.type === 'team') {
+    matches = player.teams.includes(tile.content);
+  } else {
+    const tilePlayerObj = activePool.find(p => p.name === tile.content);
+    if (tilePlayerObj)
+      matches = player.teams.some(t => tilePlayerObj.teams.includes(t));
+  }
+  return matches && player.name !== tile.content;
+});
+});
 }
 
 
@@ -639,7 +654,9 @@ currentPlayer = selectedTarget;
 usedTargets.add(currentPlayer.name);
 turnsLeft--;
 
-targetEl.textContent = currentPlayer.name;
+
+targetEl.textContent = playersById[currentPlayer.id].name;
+
 turnsEl.textContent = turnsLeft;
 messageEl.textContent = `Find connection for: ${currentPlayer.name}`;
 messageEl.className = "message-area";
@@ -677,21 +694,12 @@ setTimeout(pickNextTarget, 1000);
 }, 1000);
 }
 
-async function areAssociated(playerAName, playerBName) {
-  if (!USE_ASSOCIATIONS) return null;
+const snap = await db
+  .ref(`associations/merged/${currentPlayer.id}/${cellData.content}`)
+  .once('value');
 
-  const idA = playerNameToId[playerAName];
-  const idB = playerNameToId[playerBName];
+isMatch = snap.exists();
 
-  if (!idA || !idB) return null;
-
-  const [snapAB, snapBA] = await Promise.all([
-    db.ref(`associations/merged/${idA}/${idB}`).once('value'),
-    db.ref(`associations/merged/${idB}/${idA}`).once('value')
-  ]);
-
-  return snapAB.exists() || snapBA.exists();
-}
 
 
 
@@ -711,20 +719,20 @@ const clickedObj = activePool.find(p => p.name === cellData.content);
 if (clickedObj) {
 // Player–Player validation
 const associationResult = await areAssociated(
-  currentPlayer.name,
-  clickedObj.name
+currentPlayer.name,
+clickedObj.name
 );
 
 if (associationResult !== null) {
-  isMatch = associationResult;
+isMatch = associationResult;
 } else {
-  // Fallback to old logic
-  const shared = currentPlayer.teams.filter(t =>
-    clickedObj.teams.includes(t)
-  );
-  if (shared.length > 0 || clickedObj.name === currentPlayer.name) {
-    isMatch = true;
-  }
+// Fallback to old logic
+const shared = currentPlayer.teams.filter(t =>
+clickedObj.teams.includes(t)
+);
+if (shared.length > 0 || clickedObj.name === currentPlayer.name) {
+isMatch = true;
+}
 }
 
 }
@@ -764,8 +772,8 @@ let bingo = false;
 lines.forEach(line => {
 if (line.every(idx => gridData[idx].status === 'correct')) {
 line.forEach(idx => {
-    const c = gridEl.children[idx];
-    if (!c.classList.contains('bingo-line')) { c.classList.add('bingo-line'); bingo = true; }
+const c = gridEl.children[idx];
+if (!c.classList.contains('bingo-line')) { c.classList.add('bingo-line'); bingo = true; }
 });
 }
 });
@@ -878,8 +886,14 @@ location.reload();
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
 
 loadDifficultyPools().catch(err => {
-  console.error("Failed to load difficulty pools", err);
+console.error("Failed to load difficulty pools", err);
 });
+
+Promise.all([
+loadDifficultyPools(),
+loadPlayers()
+]).catch(console.error);
+
 
 
 
