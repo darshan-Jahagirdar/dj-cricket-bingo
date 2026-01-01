@@ -2,6 +2,7 @@
 // 0. SETUP: FIREBASE & AUDIO
 // =================================================
 
+let DATA_READY = false;
 
 
 // ✅ YOUR FIREBASE CONFIG
@@ -372,6 +373,11 @@ name: playersById[playerId]?.name || "Unknown"
 
 
 function startGame(level) {
+  if (!DATA_READY) {
+  console.warn("Game data not ready yet");
+  return;
+}
+
 score = 0;
 skipsLeft = 5;
 turnsLeft = 21;
@@ -755,14 +761,17 @@ location.reload();
 
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
 
-loadDifficultyPools().catch(err => {
-console.error("Failed to load difficulty pools", err);
+Promise.all([
+  loadPlayers(),
+  loadDifficultyPools()
+]).then(() => {
+  DATA_READY = true;
+  console.log("✅ Game data ready");
+}).catch(err => {
+  console.error("❌ Failed to load game data", err);
 });
 
-Promise.all([
-loadDifficultyPools(),
-loadPlayers()
-]).catch(console.error);
+
 
 
 
