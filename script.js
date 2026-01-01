@@ -1,7 +1,7 @@
 // =================================================
 // 0. SETUP: FIREBASE & AUDIO
 // =================================================
-const USE_ASSOCIATIONS = true;
+
 
 
 // ✅ YOUR FIREBASE CONFIG
@@ -893,6 +893,7 @@ Promise.all([
 loadDifficultyPools(),
 loadPlayers()
 ]).catch(console.error);
+
 
 
 
