@@ -19,23 +19,7 @@ measurementId: "G-E8JW0QSLTT"
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const playerNameToId = {
-"Virat Kohli": "p_virat_kohli",
-"Rohit Sharma": "p_rohit_sharma",
-"MS Dhoni": "p_ms_dhoni",
-"AB de Villiers": "p_ab_de_villiers",
-"Faf du Plessis": "p_faf_du_plessis",
-"Rishabh Pant": "p_rishabh_pant",
-"Jasprit Bumrah": "p_jasprit_bumrah",
-"Hardik Pandya": "p_hardik_pandya",
-"Glenn Maxwell": "p_glenn_maxwell",
-"David Warner": "p_david_warner",
-"Kane Williamson": "p_kane_williamson",
-"Steve Smith": "p_steve_smith",
-"Chris Lynn": "p_chris_lynn",
-"Marcus Stoinis": "p_marcus_stoinis",
-"Aaron Finch": "p_aaron_finch"
-};
+
 
 let playersById = {};
 
@@ -115,113 +99,7 @@ return this.seed / 2147483647;
 // =================================================
 // 1. DATASETS
 // =================================================
-const Teams = {
-IND: "India", AUS: "Australia", ENG: "England", WI: "West Indies", NZ: "New Zealand", SA: "South Africa", PAK: "Pakistan", SL: "Sri Lanka", AFG: "Afghanistan", BAN: "Bangladesh",
-RCB: "RCB", MI: "MI", CSK: "CSK", KKR: "KKR", SRH: "SRH", RR: "RR",
-DC: "DC (Delhi Capitals)", DD: "DD (Daredevils)", KXIP: "KXIP/PBKS", GT: "GT", LSG: "LSG",
-ST: "Sydney Thunder", SS: "Sydney Sixers", MS: "Melbourne Stars", MR: "Melbourne Renegades",
-BH: "Brisbane Heat", HH: "Hobart Hurricanes", AS: "Adelaide Strikers", PS: "Perth Scorchers",
-DEC: "Deccan Chargers", PWI: "Pune Warriors", GL: "Gujarat Lions", RPS: "Rising Pune Supergiant"
-};
 
-const easyPlayers = [
-{ name: "Virat Kohli", teams: [Teams.IND, Teams.RCB] },
-{ name: "Rohit Sharma", teams: [Teams.IND, Teams.MI, Teams.DEC] },
-{ name: "MS Dhoni", teams: [Teams.IND, Teams.CSK, Teams.RPS] },
-{ name: "David Warner", teams: [Teams.AUS, Teams.SRH, Teams.DC, Teams.DD, Teams.ST] },
-{ name: "Hardik Pandya", teams: [Teams.IND, Teams.MI, Teams.GT] },
-{ name: "Jasprit Bumrah", teams: [Teams.IND, Teams.MI] },
-{ name: "Glenn Maxwell", teams: [Teams.AUS, Teams.RCB, Teams.KXIP, Teams.MI, Teams.DD, Teams.MS] },
-{ name: "Pat Cummins", teams: [Teams.AUS, Teams.KKR, Teams.SRH, Teams.DD] },
-{ name: "Rashid Khan", teams: [Teams.AFG, Teams.SRH, Teams.GT, Teams.AS] },
-{ name: "Jos Buttler", teams: [Teams.ENG, Teams.RR, Teams.MI, Teams.ST] },
-{ name: "Ben Stokes", teams: [Teams.ENG, Teams.CSK, Teams.RR, Teams.RPS, Teams.MR] },
-{ name: "Ravindra Jadeja", teams: [Teams.IND, Teams.CSK, Teams.RR, Teams.GT, Teams.GL] },
-{ name: "KL Rahul", teams: [Teams.IND, Teams.RCB, Teams.SRH, Teams.KXIP, Teams.LSG] },
-{ name: "Andre Russell", teams: [Teams.WI, Teams.KKR, Teams.DD, Teams.MR] },
-{ name: "Sunil Narine", teams: [Teams.WI, Teams.KKR, Teams.SS] },
-{ name: "Steve Smith", teams: [Teams.AUS, Teams.RR, Teams.RPS, Teams.PWI, Teams.DC, Teams.SS] },
-{ name: "Trent Boult", teams: [Teams.NZ, Teams.SRH, Teams.MI, Teams.RR, Teams.KKR, Teams.DD, Teams.MS] },
-{ name: "Rishabh Pant", teams: [Teams.IND, Teams.DC, Teams.DD] },
-{ name: "Shubman Gill", teams: [Teams.IND, Teams.KKR, Teams.GT] },
-{ name: "Faf du Plessis", teams: [Teams.SA, Teams.CSK, Teams.RCB, Teams.RPS, Teams.MR] },
-{ name: "Suryakumar Yadav", teams: [Teams.IND, Teams.MI, Teams.KKR] },
-{ name: "Jofra Archer", teams: [Teams.ENG, Teams.RR, Teams.MI, Teams.HH] },
-{ name: "Sam Curran", teams: [Teams.ENG, Teams.CSK, Teams.KXIP] },
-{ name: "Moeen Ali", teams: [Teams.ENG, Teams.CSK, Teams.RCB] },
-{ name: "Kagiso Rabada", teams: [Teams.SA, Teams.DC, Teams.KXIP] },
-{ name: "Quinton de Kock", teams: [Teams.SA, Teams.MI, Teams.LSG, Teams.RCB, Teams.SRH, Teams.DD] },
-{ name: "Shreyas Iyer", teams: [Teams.IND, Teams.DC, Teams.KKR] },
-{ name: "Sanju Samson", teams: [Teams.IND, Teams.RR, Teams.DD] },
-{ name: "Yuzvendra Chahal", teams: [Teams.IND, Teams.RCB, Teams.RR, Teams.MI] },
-{ name: "Bhuvneshwar Kumar", teams: [Teams.IND, Teams.SRH, Teams.PWI, Teams.RCB] }
-];
-
-const mediumPlayers = [
-{ name: "AB de Villiers", teams: [Teams.SA, Teams.RCB, Teams.DD, Teams.BH] },
-{ name: "Yuvraj Singh", teams: [Teams.IND, Teams.KXIP, Teams.PWI, Teams.RCB, Teams.SRH, Teams.MI] },
-{ name: "Chris Gayle", teams: [Teams.WI, Teams.KKR, Teams.RCB, Teams.KXIP, Teams.MR] },
-{ name: "Dwayne Bravo", teams: [Teams.WI, Teams.CSK, Teams.MI, Teams.GL, Teams.MR, Teams.MS] },
-{ name: "Kieron Pollard", teams: [Teams.WI, Teams.MI, Teams.AS, Teams.MR] },
-{ name: "Shane Warne", teams: [Teams.AUS, Teams.RR, Teams.MS] },
-{ name: "Adam Gilchrist", teams: [Teams.AUS, Teams.DEC, Teams.KXIP] },
-{ name: "Brendon McCullum", teams: [Teams.NZ, Teams.KKR, Teams.CSK, Teams.RCB, Teams.GL, "KTK", Teams.BH] },
-{ name: "Gautam Gambhir", teams: [Teams.IND, Teams.DD, Teams.KKR] },
-{ name: "Zaheer Khan", teams: [Teams.IND, Teams.MI, Teams.RCB, Teams.DD] },
-{ name: "Suresh Raina", teams: [Teams.IND, Teams.CSK, Teams.GL] },
-{ name: "Harbhajan Singh", teams: [Teams.IND, Teams.MI, Teams.CSK, Teams.KKR] },
-{ name: "Shakib Al Hasan", teams: [Teams.BAN, Teams.KKR, Teams.SRH, Teams.MR] },
-{ name: "Kane Williamson", teams: [Teams.NZ, Teams.SRH, Teams.GT] },
-{ name: "Lasith Malinga", teams: [Teams.SL, Teams.MI, Teams.MS] },
-{ name: "Muthiah Muralidaran", teams: [Teams.SL, Teams.CSK, Teams.RCB, "KTK", Teams.MR] },
-{ name: "Virender Sehwag", teams: [Teams.IND, Teams.DD, Teams.KXIP] },
-{ name: "Dale Steyn", teams: [Teams.SA, Teams.RCB, Teams.SRH, Teams.DEC, Teams.GL] },
-{ name: "Mitchell Johnson", teams: [Teams.AUS, Teams.MI, Teams.KXIP, Teams.KKR, Teams.PS] },
-{ name: "Brett Lee", teams: [Teams.AUS, Teams.KXIP, Teams.KKR, Teams.SS] },
-{ name: "Michael Hussey", teams: [Teams.AUS, Teams.CSK, Teams.MI, Teams.PS, Teams.ST] },
-{ name: "Sourav Ganguly", teams: [Teams.IND, Teams.KKR, Teams.PWI] },
-{ name: "Rahul Dravid", teams: [Teams.IND, Teams.RCB, Teams.RR] },
-{ name: "Sachin Tendulkar", teams: [Teams.IND, Teams.MI] },
-{ name: "Jacques Kallis", teams: [Teams.SA, Teams.RCB, Teams.KKR, Teams.ST] },
-{ name: "Graeme Smith", teams: [Teams.SA, Teams.RR, Teams.PWI] },
-{ name: "Kumar Sangakkara", teams: [Teams.SL, Teams.KXIP, Teams.DEC, Teams.SRH] },
-{ name: "Mahela Jayawardene", teams: [Teams.SL, Teams.KXIP, "KTK", Teams.DD] },
-{ name: "Shoaib Akhtar", teams: [Teams.PAK, Teams.KKR] },
-{ name: "Shahid Afridi", teams: [Teams.PAK, Teams.DEC] }
-];
-
-const hardPlayers = [
-{ name: "Chris Lynn", teams: [Teams.AUS, Teams.KKR, Teams.MI, Teams.DEC, Teams.BH, Teams.AS] },
-{ name: "Marcus Stoinis", teams: [Teams.AUS, Teams.KXIP, Teams.RCB, Teams.DC, Teams.LSG, Teams.MS] },
-{ name: "Aaron Finch", teams: [Teams.AUS, Teams.RR, Teams.DD, Teams.PWI, Teams.SRH, Teams.MI, Teams.GL, Teams.KXIP, Teams.RCB, Teams.MR] },
-{ name: "Dan Christian", teams: [Teams.AUS, Teams.DEC, Teams.RCB, Teams.RPS, Teams.DC, Teams.BH, Teams.HH, Teams.SS] },
-{ name: "Moises Henriques", teams: [Teams.AUS, Teams.KKR, Teams.DD, Teams.RCB, Teams.SRH, Teams.KXIP, Teams.SS] },
-{ name: "Ben Cutting", teams: [Teams.AUS, Teams.RR, Teams.SRH, Teams.MI, Teams.KKR, Teams.BH, Teams.ST] },
-{ name: "Tim David", teams: ["Singapore", Teams.AUS, Teams.RCB, Teams.MI, Teams.HH] },
-{ name: "Shaun Marsh", teams: [Teams.AUS, Teams.KXIP, Teams.PS, Teams.MR] },
-{ name: "Brad Hodge", teams: [Teams.AUS, Teams.KKR, "KTK", Teams.RR, Teams.MS, Teams.AS, Teams.MR] },
-{ name: "Matthew Wade", teams: [Teams.AUS, Teams.DD, Teams.GT, Teams.HH] },
-{ name: "James Faulkner", teams: [Teams.AUS, Teams.PWI, Teams.KXIP, Teams.RR, Teams.GL, Teams.MS, Teams.HH] },
-{ name: "Sandeep Lamichhane", teams: ["Nepal", Teams.DD, Teams.DC, Teams.MS, Teams.HH] },
-{ name: "Owais Shah", teams: [Teams.ENG, Teams.KKR, Teams.RR, "KTK", Teams.HH] },
-{ name: "Herschelle Gibbs", teams: [Teams.SA, Teams.DEC, Teams.MI, Teams.PS] },
-{ name: "Dirk Nannes", teams: [Teams.AUS, "Netherlands", Teams.DD, Teams.RCB, Teams.CSK] },
-{ name: "Azhar Mahmood", teams: [Teams.PAK, Teams.KXIP, Teams.KKR] },
-{ name: "Thisara Perera", teams: [Teams.SL, Teams.CSK, "KTK", Teams.MI, Teams.SRH, Teams.KXIP, Teams.RPS] },
-{ name: "Angelo Mathews", teams: [Teams.SL, Teams.KKR, Teams.PWI, Teams.DD] },
-{ name: "Johan Botha", teams: [Teams.SA, Teams.RR, Teams.DD, Teams.KKR, Teams.AS, Teams.SS] },
-{ name: "Albie Morkel", teams: [Teams.SA, Teams.CSK, Teams.RCB, Teams.DD, Teams.RPS] },
-{ name: "Morne Morkel", teams: [Teams.SA, Teams.RR, Teams.DD, Teams.KKR] },
-{ name: "Ross Taylor", teams: [Teams.NZ, Teams.RCB, Teams.RR, Teams.DD, Teams.PWI] },
-{ name: "Luke Wright", teams: [Teams.ENG, Teams.PWI, Teams.MS] },
-{ name: "Kevin Pietersen", teams: [Teams.ENG, Teams.RCB, Teams.DEC, Teams.DD, Teams.RPS, Teams.MS] },
-{ name: "Eoin Morgan", teams: [Teams.ENG, Teams.RCB, Teams.KKR, Teams.SRH, Teams.KXIP, Teams.ST] },
-{ name: "Mitchell Marsh", teams: [Teams.AUS, Teams.DEC, Teams.PWI, Teams.RPS, Teams.SRH, Teams.DC, Teams.PS] },
-{ name: "Usman Khawaja", teams: [Teams.AUS, Teams.RPS, Teams.ST, Teams.BH] },
-{ name: "Nathan Coulter-Nile", teams: [Teams.AUS, Teams.MI, Teams.DD, Teams.KKR, Teams.RCB, Teams.RR, Teams.PS, Teams.MS] },
-{ name: "Jason Holder", teams: [Teams.WI, Teams.CSK, Teams.KKR, Teams.SRH, Teams.RR, Teams.LSG] },
-{ name: "Darren Sammy", teams: [Teams.WI, Teams.SRH, Teams.RCB, Teams.KXIP, Teams.HH] }
-];
 
 // =================================================
 // 2. GAME STATE VARIABLES
@@ -559,48 +437,44 @@ return array;
 }
 
 function generateGrid() {
+  gridEl.innerHTML = "";
+  gridData = [];
 
+  const usedContent = new Set();
+  let attempts = 0;
 
+  // Create exactly 16 UNIQUE player tiles
+  while (gridData.length < 16 && attempts < 5000) {
+    attempts++;
 
-gridEl.innerHTML = "";
-gridData = [];
-const usedContent = new Set();
-const availableTeams = [...new Set(activePool.flatMap(p => p.teams))];
+    const p = activePool[Math.floor(rng() * activePool.length)];
+    const content = p.id; // player ID only
 
-let attempts = 0;
-// Ensure we create exactly 16 tiles
-while (gridData.length < 16 && attempts < 5000) {
-attempts++;
-const isPlayer = rng() > 0.45;
-let content, type;
+    if (usedContent.has(content)) continue;
+    usedContent.add(content);
 
-if (isPlayer) {
-const p = activePool[Math.floor(rng() * activePool.length)];
-content = p.id;
-type = 'player';
+    const cellData = {
+      id: gridData.length,
+      content,          // playerId
+      type: 'player',
+      clicked: false,
+      status: null
+    };
 
-} else {
-content = availableTeams[Math.floor(rng() * availableTeams.length)];
-type = 'team';
+    gridData.push(cellData);
+
+    const cell = document.createElement('div');
+    cell.classList.add('grid-cell');
+    cell.textContent = playersById[content]?.name || "Unknown";
+
+    cell.addEventListener('click', () =>
+      handleCellClick(cell, cellData)
+    );
+
+    gridEl.appendChild(cell);
+  }
 }
 
-if (usedContent.has(content)) continue;
-usedContent.add(content);
-
-const cellData = { id: gridData.length, content, type, clicked: false, status: null };
-gridData.push(cellData);
-
-const cell = document.createElement('div');
-cell.classList.add('grid-cell');
-if (type === 'team') cell.classList.add('team-cell');
-cell.textContent =
-cellData.type === 'player'
-? playersById[cellData.content].name
-: cellData.content;
-cell.addEventListener('click', () => handleCellClick(cell, cellData));
-gridEl.appendChild(cell);
-}
-}
 
 function pickNextTarget() {
 clearInterval(timerInterval);
@@ -694,11 +568,7 @@ setTimeout(pickNextTarget, 1000);
 }, 1000);
 }
 
-const snap = await db
-  .ref(`associations/merged/${currentPlayer.id}/${cellData.content}`)
-  .once('value');
 
-isMatch = snap.exists();
 
 
 
@@ -893,6 +763,7 @@ Promise.all([
 loadDifficultyPools(),
 loadPlayers()
 ]).catch(console.error);
+
 
 
 
