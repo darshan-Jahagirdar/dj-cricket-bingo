@@ -39,18 +39,29 @@ hard: []
 };
 
 
-function loadDifficultyPools() {
-return db.ref('difficulty').once('value').then(snapshot => {
-const data = snapshot.val();
-if (!data) throw new Error("Difficulty data missing");
+function normalizePool(pool) {
+  if (!pool) return [];
 
-difficultyPools.easy = data.easy || [];
-difficultyPools.medium = data.medium || [];
-difficultyPools.hard = data.hard || [];
+  // already array
+  if (Array.isArray(pool)) return pool;
 
-console.log("Difficulty pools loaded:", difficultyPools);
-});
+  // object map → array of keys
+  return Object.keys(pool);
 }
+
+function loadDifficultyPools() {
+  return db.ref('difficulty').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (!data) throw new Error("Difficulty data missing");
+
+    difficultyPools.easy = normalizePool(data.easy);
+    difficultyPools.medium = normalizePool(data.medium);
+    difficultyPools.hard = normalizePool(data.hard);
+
+    console.log("Normalized difficulty pools:", difficultyPools);
+  });
+}
+
 
 
 
@@ -770,6 +781,7 @@ Promise.all([
 }).catch(err => {
   console.error("❌ Failed to load game data", err);
 });
+
 
 
 
