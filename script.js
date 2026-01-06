@@ -1,4 +1,4 @@
-// ✅ YOUR FIREBASE CONFIG
+//  FIREBASE CONFIG
 const firebaseConfig = {
 apiKey: "AIzaSyConiSLhLecFUDzHG-6DklqI7Llu80Sj40",
 authDomain: "dj-s-cricket-bingo.firebaseapp.com",
@@ -765,3 +765,4 @@ location.reload();
 
 
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
+
