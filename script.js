@@ -57,115 +57,8 @@ return this.seed / 2147483647;
 }
 
 // =================================================
-// 1. DATASETS
+// 1. REMOTE GAME DATA
 // =================================================
-const Teams = {
-IND: "India", AUS: "Australia", ENG: "England", WI: "West Indies", NZ: "New Zealand", SA: "South Africa", PAK: "Pakistan", SL: "Sri Lanka", AFG: "Afghanistan", BAN: "Bangladesh",
-RCB: "RCB", MI: "MI", CSK: "CSK", KKR: "KKR", SRH: "SRH", RR: "RR",
-DC: "DC (Delhi Capitals)", DD: "DD (Daredevils)", KXIP: "KXIP/PBKS", GT: "GT", LSG: "LSG",
-ST: "Sydney Thunder", SS: "Sydney Sixers", MS: "Melbourne Stars", MR: "Melbourne Renegades",
-BH: "Brisbane Heat", HH: "Hobart Hurricanes", AS: "Adelaide Strikers", PS: "Perth Scorchers",
-DEC: "Deccan Chargers", PWI: "Pune Warriors", GL: "Gujarat Lions", RPS: "Rising Pune Supergiant"
-};
-
-const easyPlayers = [
-{ name: "Virat Kohli", teams: [Teams.IND, Teams.RCB] },
-{ name: "Rohit Sharma", teams: [Teams.IND, Teams.MI, Teams.DEC] },
-{ name: "MS Dhoni", teams: [Teams.IND, Teams.CSK, Teams.RPS] },
-{ name: "David Warner", teams: [Teams.AUS, Teams.SRH, Teams.DC, Teams.DD, Teams.ST] },
-{ name: "Hardik Pandya", teams: [Teams.IND, Teams.MI, Teams.GT] },
-{ name: "Jasprit Bumrah", teams: [Teams.IND, Teams.MI] },
-{ name: "Glenn Maxwell", teams: [Teams.AUS, Teams.RCB, Teams.KXIP, Teams.MI, Teams.DD, Teams.MS] },
-{ name: "Pat Cummins", teams: [Teams.AUS, Teams.KKR, Teams.SRH, Teams.DD] },
-{ name: "Rashid Khan", teams: [Teams.AFG, Teams.SRH, Teams.GT, Teams.AS] },
-{ name: "Jos Buttler", teams: [Teams.ENG, Teams.RR, Teams.MI, Teams.ST] },
-{ name: "Ben Stokes", teams: [Teams.ENG, Teams.CSK, Teams.RR, Teams.RPS, Teams.MR] },
-{ name: "Ravindra Jadeja", teams: [Teams.IND, Teams.CSK, Teams.RR, Teams.GT, Teams.GL] },
-{ name: "KL Rahul", teams: [Teams.IND, Teams.RCB, Teams.SRH, Teams.KXIP, Teams.LSG] },
-{ name: "Andre Russell", teams: [Teams.WI, Teams.KKR, Teams.DD, Teams.MR] },
-{ name: "Sunil Narine", teams: [Teams.WI, Teams.KKR, Teams.SS] },
-{ name: "Steve Smith", teams: [Teams.AUS, Teams.RR, Teams.RPS, Teams.PWI, Teams.DC, Teams.SS] },
-{ name: "Trent Boult", teams: [Teams.NZ, Teams.SRH, Teams.MI, Teams.RR, Teams.KKR, Teams.DD, Teams.MS] },
-{ name: "Rishabh Pant", teams: [Teams.IND, Teams.DC, Teams.DD] },
-{ name: "Shubman Gill", teams: [Teams.IND, Teams.KKR, Teams.GT] },
-{ name: "Faf du Plessis", teams: [Teams.SA, Teams.CSK, Teams.RCB, Teams.RPS, Teams.MR] },
-{ name: "Suryakumar Yadav", teams: [Teams.IND, Teams.MI, Teams.KKR] },
-{ name: "Jofra Archer", teams: [Teams.ENG, Teams.RR, Teams.MI, Teams.HH] },
-{ name: "Sam Curran", teams: [Teams.ENG, Teams.CSK, Teams.KXIP] },
-{ name: "Moeen Ali", teams: [Teams.ENG, Teams.CSK, Teams.RCB] },
-{ name: "Kagiso Rabada", teams: [Teams.SA, Teams.DC, Teams.KXIP] },
-{ name: "Quinton de Kock", teams: [Teams.SA, Teams.MI, Teams.LSG, Teams.RCB, Teams.SRH, Teams.DD] },
-{ name: "Shreyas Iyer", teams: [Teams.IND, Teams.DC, Teams.KKR] },
-{ name: "Sanju Samson", teams: [Teams.IND, Teams.RR, Teams.DD] },
-{ name: "Yuzvendra Chahal", teams: [Teams.IND, Teams.RCB, Teams.RR, Teams.MI] },
-{ name: "Bhuvneshwar Kumar", teams: [Teams.IND, Teams.SRH, Teams.PWI, Teams.RCB] }
-];
-
-const mediumPlayers = [
-{ name: "AB de Villiers", teams: [Teams.SA, Teams.RCB, Teams.DD, Teams.BH] },
-{ name: "Yuvraj Singh", teams: [Teams.IND, Teams.KXIP, Teams.PWI, Teams.RCB, Teams.SRH, Teams.MI] },
-{ name: "Chris Gayle", teams: [Teams.WI, Teams.KKR, Teams.RCB, Teams.KXIP, Teams.MR] },
-{ name: "Dwayne Bravo", teams: [Teams.WI, Teams.CSK, Teams.MI, Teams.GL, Teams.MR, Teams.MS] },
-{ name: "Kieron Pollard", teams: [Teams.WI, Teams.MI, Teams.AS, Teams.MR] },
-{ name: "Shane Warne", teams: [Teams.AUS, Teams.RR, Teams.MS] },
-{ name: "Adam Gilchrist", teams: [Teams.AUS, Teams.DEC, Teams.KXIP] },
-{ name: "Brendon McCullum", teams: [Teams.NZ, Teams.KKR, Teams.CSK, Teams.RCB, Teams.GL, "KTK", Teams.BH] },
-{ name: "Gautam Gambhir", teams: [Teams.IND, Teams.DD, Teams.KKR] },
-{ name: "Zaheer Khan", teams: [Teams.IND, Teams.MI, Teams.RCB, Teams.DD] },
-{ name: "Suresh Raina", teams: [Teams.IND, Teams.CSK, Teams.GL] },
-{ name: "Harbhajan Singh", teams: [Teams.IND, Teams.MI, Teams.CSK, Teams.KKR] },
-{ name: "Shakib Al Hasan", teams: [Teams.BAN, Teams.KKR, Teams.SRH, Teams.MR] },
-{ name: "Kane Williamson", teams: [Teams.NZ, Teams.SRH, Teams.GT] },
-{ name: "Lasith Malinga", teams: [Teams.SL, Teams.MI, Teams.MS] },
-{ name: "Muthiah Muralidaran", teams: [Teams.SL, Teams.CSK, Teams.RCB, "KTK", Teams.MR] },
-{ name: "Virender Sehwag", teams: [Teams.IND, Teams.DD, Teams.KXIP] },
-{ name: "Dale Steyn", teams: [Teams.SA, Teams.RCB, Teams.SRH, Teams.DEC, Teams.GL] },
-{ name: "Mitchell Johnson", teams: [Teams.AUS, Teams.MI, Teams.KXIP, Teams.KKR, Teams.PS] },
-{ name: "Brett Lee", teams: [Teams.AUS, Teams.KXIP, Teams.KKR, Teams.SS] },
-{ name: "Michael Hussey", teams: [Teams.AUS, Teams.CSK, Teams.MI, Teams.PS, Teams.ST] },
-{ name: "Sourav Ganguly", teams: [Teams.IND, Teams.KKR, Teams.PWI] },
-{ name: "Rahul Dravid", teams: [Teams.IND, Teams.RCB, Teams.RR] },
-{ name: "Sachin Tendulkar", teams: [Teams.IND, Teams.MI] },
-{ name: "Jacques Kallis", teams: [Teams.SA, Teams.RCB, Teams.KKR, Teams.ST] },
-{ name: "Graeme Smith", teams: [Teams.SA, Teams.RR, Teams.PWI] },
-{ name: "Kumar Sangakkara", teams: [Teams.SL, Teams.KXIP, Teams.DEC, Teams.SRH] },
-{ name: "Mahela Jayawardene", teams: [Teams.SL, Teams.KXIP, "KTK", Teams.DD] },
-{ name: "Shoaib Akhtar", teams: [Teams.PAK, Teams.KKR] },
-{ name: "Shahid Afridi", teams: [Teams.PAK, Teams.DEC] }
-];
-
-const hardPlayers = [
-{ name: "Chris Lynn", teams: [Teams.AUS, Teams.KKR, Teams.MI, Teams.DEC, Teams.BH, Teams.AS] },
-{ name: "Marcus Stoinis", teams: [Teams.AUS, Teams.KXIP, Teams.RCB, Teams.DC, Teams.LSG, Teams.MS] },
-{ name: "Aaron Finch", teams: [Teams.AUS, Teams.RR, Teams.DD, Teams.PWI, Teams.SRH, Teams.MI, Teams.GL, Teams.KXIP, Teams.RCB, Teams.MR] },
-{ name: "Dan Christian", teams: [Teams.AUS, Teams.DEC, Teams.RCB, Teams.RPS, Teams.DC, Teams.BH, Teams.HH, Teams.SS] },
-{ name: "Moises Henriques", teams: [Teams.AUS, Teams.KKR, Teams.DD, Teams.RCB, Teams.SRH, Teams.KXIP, Teams.SS] },
-{ name: "Ben Cutting", teams: [Teams.AUS, Teams.RR, Teams.SRH, Teams.MI, Teams.KKR, Teams.BH, Teams.ST] },
-{ name: "Tim David", teams: ["Singapore", Teams.AUS, Teams.RCB, Teams.MI, Teams.HH] },
-{ name: "Shaun Marsh", teams: [Teams.AUS, Teams.KXIP, Teams.PS, Teams.MR] },
-{ name: "Brad Hodge", teams: [Teams.AUS, Teams.KKR, "KTK", Teams.RR, Teams.MS, Teams.AS, Teams.MR] },
-{ name: "Matthew Wade", teams: [Teams.AUS, Teams.DD, Teams.GT, Teams.HH] },
-{ name: "James Faulkner", teams: [Teams.AUS, Teams.PWI, Teams.KXIP, Teams.RR, Teams.GL, Teams.MS, Teams.HH] },
-{ name: "Sandeep Lamichhane", teams: ["Nepal", Teams.DD, Teams.DC, Teams.MS, Teams.HH] },
-{ name: "Owais Shah", teams: [Teams.ENG, Teams.KKR, Teams.RR, "KTK", Teams.HH] },
-{ name: "Herschelle Gibbs", teams: [Teams.SA, Teams.DEC, Teams.MI, Teams.PS] },
-{ name: "Dirk Nannes", teams: [Teams.AUS, "Netherlands", Teams.DD, Teams.RCB, Teams.CSK] },
-{ name: "Azhar Mahmood", teams: [Teams.PAK, Teams.KXIP, Teams.KKR] },
-{ name: "Thisara Perera", teams: [Teams.SL, Teams.CSK, "KTK", Teams.MI, Teams.SRH, Teams.KXIP, Teams.RPS] },
-{ name: "Angelo Mathews", teams: [Teams.SL, Teams.KKR, Teams.PWI, Teams.DD] },
-{ name: "Johan Botha", teams: [Teams.SA, Teams.RR, Teams.DD, Teams.KKR, Teams.AS, Teams.SS] },
-{ name: "Albie Morkel", teams: [Teams.SA, Teams.CSK, Teams.RCB, Teams.DD, Teams.RPS] },
-{ name: "Morne Morkel", teams: [Teams.SA, Teams.RR, Teams.DD, Teams.KKR] },
-{ name: "Ross Taylor", teams: [Teams.NZ, Teams.RCB, Teams.RR, Teams.DD, Teams.PWI] },
-{ name: "Luke Wright", teams: [Teams.ENG, Teams.PWI, Teams.MS] },
-{ name: "Kevin Pietersen", teams: [Teams.ENG, Teams.RCB, Teams.DEC, Teams.DD, Teams.RPS, Teams.MS] },
-{ name: "Eoin Morgan", teams: [Teams.ENG, Teams.RCB, Teams.KKR, Teams.SRH, Teams.KXIP, Teams.ST] },
-{ name: "Mitchell Marsh", teams: [Teams.AUS, Teams.DEC, Teams.PWI, Teams.RPS, Teams.SRH, Teams.DC, Teams.PS] },
-{ name: "Usman Khawaja", teams: [Teams.AUS, Teams.RPS, Teams.ST, Teams.BH] },
-{ name: "Nathan Coulter-Nile", teams: [Teams.AUS, Teams.MI, Teams.DD, Teams.KKR, Teams.RCB, Teams.RR, Teams.PS, Teams.MS] },
-{ name: "Jason Holder", teams: [Teams.WI, Teams.CSK, Teams.KKR, Teams.SRH, Teams.RR, Teams.LSG] },
-{ name: "Darren Sammy", teams: [Teams.WI, Teams.SRH, Teams.RCB, Teams.KXIP, Teams.HH] }
-];
 
 // =================================================
 // 2. GAME STATE VARIABLES
@@ -190,6 +83,10 @@ let rng = Math.random; // Default to random
 let cachedOpponentData = null;
 let pendingLevel = null;
 let hasUsedFreeHit = false;
+let dbPlayers = {};
+let dbDifficulty = {};
+let dbAssociations = {};
+let isDataLoaded = false;
 
 // UI Elements
 const levelScreen = document.getElementById('levelSelection');
@@ -214,6 +111,22 @@ const activeRoomCode = document.getElementById('activeRoomCode');
 const rulesModal = document.getElementById('rulesModal');
 const rulesOkBtn = document.getElementById('rulesOkBtn');
 
+async function initGameData() {
+try {
+const playersSnap = await db.ref('players').once('value');
+const difficultySnap = await db.ref('difficulty').once('value');
+const associationsSnap = await db.ref('associations/merged').once('value');
+
+dbPlayers = playersSnap.val() || {};
+dbDifficulty = difficultySnap.val() || {};
+dbAssociations = associationsSnap.val() || {};
+isDataLoaded = true;
+console.log('Game data loaded successfully from Firebase.');
+} catch (error) {
+console.error('Failed to load game data from Firebase:', error);
+}
+}
+
 // =================================================
 // 3. UI LISTENERS
 // =================================================
@@ -221,6 +134,11 @@ const rulesOkBtn = document.getElementById('rulesOkBtn');
 // Single Player Buttons -> Open Rules
 document.querySelectorAll('.level-btn').forEach(btn => {
 btn.addEventListener('click', () => {
+if (!isDataLoaded) {
+alert("Loading game data, please wait...");
+return;
+}
+
 gameMode = 'single';
 rng = Math.random; // Reset RNG
 pendingLevel = btn.dataset.level;
@@ -231,6 +149,11 @@ AudioController.play('pop');
 
 // Multiplayer Button -> Open Rules
 document.getElementById('multiplayerBtn').addEventListener('click', () => {
+if (!isDataLoaded) {
+alert("Loading game data, please wait...");
+return;
+}
+
 gameMode = 'multi';
 rulesModal.classList.remove('hidden');
 AudioController.play('pop');
@@ -447,17 +370,25 @@ nextBtn.disabled = false;
 nextBtn.innerHTML = `Skip (<span id="skipsCount">${skipsLeft}</span>)`;
 clearInterval(timerInterval);
 
-// Populate Pool
+// Populate Pool from Firebase difficulty buckets
+const easyIds = dbDifficulty['easy'] || [];
+const mediumIds = dbDifficulty['medium'] || [];
+const hardIds = dbDifficulty['hard'] || [];
+
+const mapIdsToPlayers = (ids) => ids
+.map(id => ({ id, ...(dbPlayers[id] || {}) }))
+.filter(player => player && player.id && player.name);
+
 let poolSource = [];
 if (level === 'easy') {
 timeLimit = 0;
-poolSource = [...easyPlayers, ...mediumPlayers.slice(0, 15), ...hardPlayers.slice(0, 15)];
+poolSource = [...mapIdsToPlayers(easyIds), ...mapIdsToPlayers(mediumIds).slice(0, 15), ...mapIdsToPlayers(hardIds).slice(0, 15)];
 } else if (level === 'medium') {
 timeLimit = 12;
-poolSource = [...mediumPlayers, ...easyPlayers, ...hardPlayers.slice(0, 10)];
+poolSource = [...mapIdsToPlayers(mediumIds), ...mapIdsToPlayers(easyIds), ...mapIdsToPlayers(hardIds).slice(0, 10)];
 } else if (level === 'hard') {
 timeLimit = 7;
-poolSource = [...hardPlayers, ...mediumPlayers, ...easyPlayers.slice(0, 10)];
+poolSource = [...mapIdsToPlayers(hardIds), ...mapIdsToPlayers(mediumIds), ...mapIdsToPlayers(easyIds).slice(0, 10)];
 }
 
 // Shuffle using current RNG (Math.random OR Seeded)
@@ -465,7 +396,7 @@ activePool = shuffle(poolSource);
 
 // Deduplicate
 activePool = activePool.filter((player, index, self) =>
-index === self.findIndex((t) => (t.name === player.name))
+index === self.findIndex((t) => (t.id === player.id))
 );
 
 // Ensure UI Switch
@@ -493,38 +424,28 @@ return array;
 function generateGrid() {
 gridEl.innerHTML = "";
 gridData = [];
-const usedContent = new Set();
-const availableTeams = [...new Set(activePool.flatMap(p => p.teams))];
 
-let attempts = 0;
-// Ensure we create exactly 16 tiles
-while (gridData.length < 16 && attempts < 5000) {
-attempts++;
-const isPlayer = rng() > 0.45;
-let content, type;
+const uniquePool = activePool.filter((player, index, self) =>
+index === self.findIndex((t) => (t.id === player.id))
+);
 
-if (isPlayer) {
-const p = activePool[Math.floor(rng() * activePool.length)];
-content = p.name;
-type = 'player';
-} else {
-content = availableTeams[Math.floor(rng() * availableTeams.length)];
-type = 'team';
+if (uniquePool.length < 16) {
+handleGameComplete(false, "Not enough player data loaded!");
+return;
 }
 
-if (usedContent.has(content)) continue;
-usedContent.add(content);
+const selectedGridPlayers = shuffle([...uniquePool]).slice(0, 16);
 
-const cellData = { id: gridData.length, content, type, clicked: false, status: null };
+selectedGridPlayers.forEach((player, index) => {
+const cellData = { id: player.id, index, content: player.name, clicked: false, status: null };
 gridData.push(cellData);
 
 const cell = document.createElement('div');
 cell.classList.add('grid-cell');
-if (type === 'team') cell.classList.add('team-cell');
-cell.textContent = content;
+cell.textContent = player.name;
 cell.addEventListener('click', () => handleCellClick(cell, cellData));
 gridEl.appendChild(cell);
-}
+});
 }
 
 function pickNextTarget() {
@@ -542,17 +463,10 @@ return;
 }
 
 // ROBUST SELECTION
-const availablePlayers = activePool.filter(p => !usedTargets.has(p.name));
-const validCandidates = availablePlayers.filter(player => {
-return unclicked.some(tile => {
-let matches = false;
-if (tile.type === 'team') matches = player.teams.includes(tile.content);
-else {
-    const tilePlayerObj = activePool.find(p => p.name === tile.content);
-    if (tilePlayerObj) matches = player.teams.some(t => tilePlayerObj.teams.includes(t));
-}
-return matches && player.name !== tile.content;
-});
+const availablePlayers = activePool.filter(p => !usedTargets.has(p.id));
+const validCandidates = availablePlayers.filter(candidate => {
+if (!dbAssociations[candidate.id]) return false;
+return unclicked.some(tile => dbAssociations[candidate.id][tile.id] === true);
 });
 
 if (validCandidates.length === 0) {
@@ -563,7 +477,7 @@ return;
 const selectedTarget = validCandidates[Math.floor(rng() * validCandidates.length)];
 
 currentPlayer = selectedTarget;
-usedTargets.add(currentPlayer.name);
+usedTargets.add(currentPlayer.id);
 turnsLeft--;
 
 targetEl.textContent = currentPlayer.name;
@@ -610,17 +524,7 @@ if (timeLimit > 0 && currentTime <= 0) return;
 
 clearInterval(timerInterval);
 cellData.clicked = true;
-let isMatch = false;
-
-if (cellData.type === 'team') {
-if (currentPlayer.teams.includes(cellData.content)) isMatch = true;
-} else {
-const clickedObj = activePool.find(p => p.name === cellData.content);
-if (clickedObj) {
-const shared = currentPlayer.teams.filter(t => clickedObj.teams.includes(t));
-if (shared.length > 0 || clickedObj.name === currentPlayer.name) isMatch = true;
-}
-}
+let isMatch = dbAssociations[currentPlayer.id] && dbAssociations[currentPlayer.id][cellData.id] === true;
 
 if (isMatch) {
 cellEl.classList.add('correct');
@@ -802,3 +706,4 @@ location.reload();
 
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
 
+initGameData();
