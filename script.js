@@ -664,7 +664,7 @@ const cellData = unclicked[Math.floor(Math.random() * unclicked.length)];
 cellData.clicked = true;
 cellData.status = 'correct';
 
-const cellEl = gridEl.children[cellData.id];
+const cellEl = gridEl.children[cellData.index];
 if (cellEl) cellEl.classList.add('correct');
 
 score += 1;
@@ -707,3 +707,4 @@ location.reload();
 document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
 
 initGameData();
+
