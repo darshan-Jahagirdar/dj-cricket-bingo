@@ -664,7 +664,7 @@ const cellData = unclicked[Math.floor(Math.random() * unclicked.length)];
 cellData.clicked = true;
 cellData.status = 'correct';
 
-const cellEl = gridEl.children[cellData.index];
+const cellEl = gridEl.children[cellData.id];
 if (cellEl) cellEl.classList.add('correct');
 
 score += 1;
