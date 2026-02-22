@@ -748,6 +748,8 @@ if (Date.now() < end) requestAnimationFrame(frame);
 document.getElementById('freeHitBtn').addEventListener('click', () => {
 if (isGameOver || hasUsedFreeHit) return;
 
+clearInterval(timerInterval);
+
 hasUsedFreeHit = true;
 document.getElementById('freeHitBtn').disabled = true;
 
@@ -772,6 +774,7 @@ messageEl.className = "message-area msg-success";
 
 checkBingoWin();
 updateMultiplayerState();
+setTimeout(pickNextTarget, 1000);
 });
 
 nextBtn.addEventListener('click', () => {
