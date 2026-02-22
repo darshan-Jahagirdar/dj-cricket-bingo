@@ -189,6 +189,7 @@ let roomListener = null;
 let rng = Math.random; // Default to random
 let cachedOpponentData = null;
 let pendingLevel = null;
+let hasUsedFreeHit = false;
 
 // UI Elements
 const levelScreen = document.getElementById('levelSelection');
@@ -436,6 +437,8 @@ isGameOver = false;
 usedTargets.clear();
 gameStartTime = Date.now();
 cachedOpponentData = null;
+hasUsedFreeHit = false;
+document.getElementById('freeHitBtn').disabled = false;
 
 scoreEl.textContent = score;
 turnsEl.textContent = turnsLeft;
@@ -741,6 +744,36 @@ if (Date.now() < end) requestAnimationFrame(frame);
 }
 
 // Controls
+
+document.getElementById('freeHitBtn').addEventListener('click', () => {
+if (isGameOver || hasUsedFreeHit) return;
+
+hasUsedFreeHit = true;
+document.getElementById('freeHitBtn').disabled = true;
+
+const unclicked = gridData.filter(cell => cell.clicked === false);
+if (unclicked.length === 0) return;
+
+const cellData = unclicked[Math.floor(Math.random() * unclicked.length)];
+cellData.clicked = true;
+cellData.status = 'correct';
+
+const cellEl = gridEl.children[cellData.id];
+if (cellEl) cellEl.classList.add('correct');
+
+score += 1;
+scoreEl.textContent = score;
+
+AudioController.play('correct');
+confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
+
+messageEl.textContent = "Free Hit Used! (+1)";
+messageEl.className = "message-area msg-success";
+
+checkBingoWin();
+updateMultiplayerState();
+});
+
 nextBtn.addEventListener('click', () => {
 if (isGameOver) return;
 if (skipsLeft > 0) {
