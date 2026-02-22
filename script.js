@@ -32,6 +32,46 @@ s.play().catch(() => { });
 }
 };
 
+
+
+const Commentator = {
+wrong: [
+"Did you just guess, or do you actually think they played together?",
+"My grandmother could have found a better connection.",
+"That was worse than a dropped catch in the slips.",
+"Are you just clicking names you've seen in TV ads?"
+],
+skip: [
+"Ah, the classic 'I only watch IPL' button.",
+"Skipping? Bold strategy.",
+"Cowardice is a valid tactic, I guess.",
+"I'll pretend I didn't see that."
+],
+timeout: [
+"Take your time. It's not like we're playing a T20.",
+"Even the 3rd Umpire fell asleep waiting.",
+"Did your Wi-Fi drop, or just your cricket knowledge?"
+]
+};
+
+let roastTimer = null;
+
+function triggerRoast(type) {
+const toast = document.getElementById('roastToast');
+if (!toast || !Commentator[type]) return;
+
+clearTimeout(roastTimer);
+
+const lines = Commentator[type];
+toast.textContent = lines[Math.floor(Math.random() * lines.length)];
+
+toast.classList.add('toast-visible');
+
+roastTimer = setTimeout(() => {
+toast.classList.remove('toast-visible');
+}, 3000);
+}
+
 // --- CRICKET RANKS ---
 function getCricketRank(score) {
 if (score >= 14) return "🏏 GOD OF CRICKET";
@@ -514,6 +554,7 @@ clearInterval(timerInterval);
 messageEl.textContent = "⏰ Time Up! (-1)";
 messageEl.className = "message-area msg-error";
 score--;
+triggerRoast('timeout');
 scoreEl.textContent = score;
 AudioController.play('wrong');
 if (navigator.vibrate) navigator.vibrate(200);
@@ -545,6 +586,7 @@ checkBingoWin();
 cellEl.classList.add('incorrect');
 cellData.status = 'incorrect';
 score--;
+triggerRoast('wrong');
 messageEl.textContent = "Wrong! (-1)";
 messageEl.className = "message-area msg-error";
 AudioController.play('wrong');
@@ -690,6 +732,7 @@ nextBtn.addEventListener('click', () => {
 if (isGameOver) return;
 if (skipsLeft > 0) {
 skipsLeft--;
+triggerRoast('skip');
 document.getElementById('skipsCount').textContent = skipsLeft;
 messageEl.textContent = "Skipped Target";
 AudioController.play('pop');
