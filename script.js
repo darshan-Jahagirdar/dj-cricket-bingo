@@ -636,12 +636,19 @@ return;
 }
 
 // ROBUST SELECTION
-const gridIds = new Set(gridData.map(c => c.id));
+let availablePlayers;
 
-const availablePlayers = activePool.filter(p =>
+if (isDailyMode) {
+availablePlayers = activePool.filter(p =>
+!usedTargets.has(p.id)
+);
+} else {
+const gridIds = new Set(gridData.map(c => c.id));
+availablePlayers = activePool.filter(p =>
 !usedTargets.has(p.id) &&
 !gridIds.has(p.id)
 );
+}
 const validCandidates = availablePlayers.filter(candidate => {
 if (!dbAssociations[candidate.id]) return false;
 return unclicked.some(tile => dbAssociations[candidate.id][tile.id] === true);
@@ -950,5 +957,6 @@ location.reload();
 });
 
 initGameData();
+
 
 
