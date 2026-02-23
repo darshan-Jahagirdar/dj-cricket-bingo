@@ -127,6 +127,14 @@ let dbPlayers = {};
 let dbDifficulty = {};
 let dbAssociations = {};
 let isDataLoaded = false;
+let isDailyMode = false;
+let dailyUsername = "";
+let dailyStartTime = 0;
+let dailyTotalTime = 0;
+let dailyDateKey = "";
+let basePlayers = {};
+let baseDifficulty = {};
+let baseAssociations = {};
 
 // UI Elements
 const levelScreen = document.getElementById('levelSelection');
@@ -150,6 +158,10 @@ const activeRoomCode = document.getElementById('activeRoomCode');
 
 const rulesModal = document.getElementById('rulesModal');
 const rulesOkBtn = document.getElementById('rulesOkBtn');
+const usernameModal = document.getElementById('usernameModal');
+const dailyUsernameInput = document.getElementById('dailyUsernameInput');
+const dailyLeaderboard = document.getElementById('dailyLeaderboard');
+const dailyLeaderboardList = document.getElementById('dailyLeaderboardList');
 
 async function initGameData() {
 try {
@@ -160,6 +172,9 @@ const associationsSnap = await db.ref('associations/merged').once('value');
 dbPlayers = playersSnap.val() || {};
 dbDifficulty = difficultySnap.val() || {};
 dbAssociations = associationsSnap.val() || {};
+basePlayers = dbPlayers;
+baseDifficulty = dbDifficulty;
+baseAssociations = dbAssociations;
 isDataLoaded = true;
 console.log('Game data loaded successfully from Firebase.');
 } catch (error) {
@@ -179,6 +194,7 @@ alert("Loading game data, please wait...");
 return;
 }
 
+deactivateDailyMode();
 gameMode = 'single';
 rng = Math.random; // Reset RNG
 pendingLevel = btn.dataset.level;
@@ -194,9 +210,37 @@ alert("Loading game data, please wait...");
 return;
 }
 
+deactivateDailyMode();
 gameMode = 'multi';
 rulesModal.classList.remove('hidden');
 AudioController.play('pop');
+});
+
+
+// Daily Bingo Button -> Username prompt
+document.getElementById('dailyBingoBtn').addEventListener('click', () => {
+if (!isDataLoaded) {
+alert("Loading game data, please wait...");
+return;
+}
+usernameModal.classList.remove('hidden');
+dailyUsernameInput.value = dailyUsername;
+setTimeout(() => dailyUsernameInput.focus(), 0);
+AudioController.play('pop');
+});
+
+document.getElementById('startDailyBtn').addEventListener('click', async () => {
+const name = dailyUsernameInput.value.trim();
+if (!name) {
+alert("Please enter a username");
+return;
+}
+dailyUsername = name.substring(0, 15);
+usernameModal.classList.add('hidden');
+isDailyMode = true;
+gameMode = 'daily';
+AudioController.play('pop');
+await startDailyBingo();
 });
 
 // Rules OK Button
@@ -388,26 +432,109 @@ if (result.includes("WIN")) AudioController.play('win');
 else AudioController.play('lose');
 }
 
+
+function formatDailyDateKey() {
+const now = new Date();
+return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function setRuntimeGameData(players, difficulty, associations) {
+dbPlayers = players || {};
+dbDifficulty = difficulty || {};
+dbAssociations = associations || {};
+}
+
+
+function deactivateDailyMode() {
+if (!isDailyMode) return;
+isDailyMode = false;
+dailyDateKey = "";
+dailyTotalTime = 0;
+setRuntimeGameData(basePlayers, baseDifficulty, baseAssociations);
+}
+
+async function startDailyBingo() {
+dailyDateKey = formatDailyDateKey();
+
+try {
+const deckSnap = await db.ref('dailyBingo/' + dailyDateKey + '/deck').once('value');
+const deck = deckSnap.val();
+
+if (!deck || !deck.players || !deck.difficulty || !deck.associations) {
+alert("Today's grid isn't ready yet!");
+deactivateDailyMode();
+gameMode = 'single';
+return;
+}
+
+setRuntimeGameData(deck.players, deck.difficulty, deck.associations);
+activePool = Object.keys(deck.players).map(id => ({ id, ...(deck.players[id] || {}) })).filter(player => player && player.id && player.name);
+
+turnsLeft = 16;
+skipsLeft = 0;
+hasUsedFreeHit = true;
+
+const freeHitBtn = document.getElementById('freeHitBtn');
+freeHitBtn.disabled = true;
+nextBtn.disabled = true;
+nextBtn.innerHTML = "No Skips";
+skipsSpan.textContent = '0';
+
+dailyStartTime = Date.now();
+startGame('daily');
+} catch (error) {
+console.error('Failed to load daily deck:', error);
+alert("Couldn't load Daily Bingo. Please try again.");
+deactivateDailyMode();
+gameMode = 'single';
+setRuntimeGameData(basePlayers, baseDifficulty, baseAssociations);
+}
+}
+
+async function showDailyLeaderboard() {
+const boardRef = db.ref('dailyBingo/' + dailyDateKey + '/leaderboard');
+const snap = await boardRef.once('value');
+const entriesRaw = snap.val() || {};
+const entries = Object.values(entriesRaw)
+.filter(e => e && typeof e.score === 'number' && typeof e.time === 'number')
+.sort((a, b) => (b.score - a.score) || (a.time - b.time))
+.slice(0, 10);
+
+dailyLeaderboardList.innerHTML = '';
+if (entries.length === 0) {
+const li = document.createElement('li');
+li.textContent = 'No scores yet. Be the first!';
+dailyLeaderboardList.appendChild(li);
+return;
+}
+
+entries.forEach(entry => {
+const li = document.createElement('li');
+li.textContent = `${entry.username || 'Anonymous'} — ${entry.score} pts (${entry.time.toFixed(1)}s)`;
+dailyLeaderboardList.appendChild(li);
+});
+}
+
 // =================================================
 // 5. GAME LOGIC (Fixed & Robust)
 // =================================================
 
 function startGame(level) {
 score = 0;
-skipsLeft = 5;
-turnsLeft = 21;
+skipsLeft = isDailyMode ? 0 : 5;
+turnsLeft = isDailyMode ? 16 : 21;
 isGameOver = false;
 usedTargets.clear();
 gameStartTime = Date.now();
 cachedOpponentData = null;
-hasUsedFreeHit = false;
-document.getElementById('freeHitBtn').disabled = false;
+hasUsedFreeHit = isDailyMode;
+document.getElementById('freeHitBtn').disabled = isDailyMode ? true : false;
 
 scoreEl.textContent = score;
 turnsEl.textContent = turnsLeft;
 skipsSpan.textContent = skipsLeft;
-nextBtn.disabled = false;
-nextBtn.innerHTML = `Skip (<span id="skipsCount">${skipsLeft}</span>)`;
+nextBtn.disabled = isDailyMode;
+nextBtn.innerHTML = isDailyMode ? "No Skips" : `Skip (<span id="skipsCount">${skipsLeft}</span>)`;
 clearInterval(timerInterval);
 
 // Populate Pool from Firebase difficulty buckets
@@ -429,6 +556,9 @@ poolSource = [...mapIdsToPlayers(mediumIds), ...mapIdsToPlayers(easyIds), ...map
 } else if (level === 'hard') {
 timeLimit = 7;
 poolSource = [...mapIdsToPlayers(hardIds), ...mapIdsToPlayers(mediumIds), ...mapIdsToPlayers(easyIds).slice(0, 10)];
+} else if (level === 'daily') {
+timeLimit = 10;
+poolSource = Object.keys(dbPlayers).map(id => ({ id, ...(dbPlayers[id] || {}) })).filter(player => player && player.id && player.name);
 }
 
 // Shuffle using current RNG (Math.random OR Seeded)
@@ -443,6 +573,9 @@ index === self.findIndex((t) => (t.id === player.id))
 levelScreen.classList.add('hidden');
 gameArea.classList.remove('hidden');
 document.getElementById('gameModal').classList.add('hidden');
+dailyLeaderboard.classList.add('hidden');
+document.getElementById('rankDisplay').parentElement.classList.remove('hidden');
+document.getElementById('modalMessage').classList.remove('hidden');
 AudioController.play('pop');
 
 generateGrid();
@@ -493,7 +626,7 @@ clearInterval(timerInterval);
 if (isGameOver) return;
 
 const unclicked = gridData.filter(c => !c.clicked);
-if (unclicked.length === 0) {
+if (!isDailyMode && unclicked.length === 0) {
 handleGameComplete(true);
 return;
 }
@@ -531,6 +664,7 @@ messageEl.textContent = `Find connection for: ${currentPlayer.name}`;
 messageEl.className = "message-area";
 messageEl.style.color = "#555";
 
+if (isDailyMode) timeLimit = 10;
 if (timeLimit > 0) startTimer(timeLimit);
 else {
 timerEl.textContent = "∞";
@@ -551,9 +685,9 @@ if (currentTime <= 3) timerEl.classList.add("timer-warning");
 
 if (currentTime <= 0) {
 clearInterval(timerInterval);
-messageEl.textContent = "⏰ Time Up! (-1)";
+messageEl.textContent = isDailyMode ? "⏰ Time Up! (-500)" : "⏰ Time Up! (-1)";
 messageEl.className = "message-area msg-error";
-score--;
+score += isDailyMode ? -500 : -1;
 triggerRoast('timeout');
 scoreEl.textContent = score;
 AudioController.play('wrong');
@@ -575,8 +709,13 @@ let isMatch = dbAssociations[currentPlayer.id] && dbAssociations[currentPlayer.i
 if (isMatch) {
 cellEl.classList.add('correct');
 cellData.status = 'correct';
+if (isDailyMode) {
+score += (1000 + (100 * currentTime));
+messageEl.textContent = `Correct! (+${1000 + (100 * currentTime)})`;
+} else {
 score++;
 messageEl.textContent = "Correct! (+1)";
+}
 messageEl.className = "message-area msg-success";
 AudioController.play('correct');
 if (navigator.vibrate) navigator.vibrate(50);
@@ -585,9 +724,9 @@ checkBingoWin();
 } else {
 cellEl.classList.add('incorrect');
 cellData.status = 'incorrect';
-score--;
+score += isDailyMode ? -500 : -1;
 triggerRoast('wrong');
-messageEl.textContent = "Wrong! (-1)";
+messageEl.textContent = isDailyMode ? "Wrong! (-500)" : "Wrong! (-1)";
 messageEl.className = "message-area msg-error";
 AudioController.play('wrong');
 if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
@@ -619,7 +758,7 @@ AudioController.play('correct');
 }
 }
 
-function handleGameComplete(isWin, failureReason = "Ran out of names!") {
+async function handleGameComplete(isWin, failureReason = "Ran out of names!") {
 isGameOver = true;
 clearInterval(timerInterval);
 
@@ -643,12 +782,50 @@ document.getElementById('shareBtn').style.display = 'none';
 return;
 }
 
+
+if (isDailyMode) {
+targetEl.textContent = isWin ? "Daily Complete!" : "Daily Over";
+const modal = document.getElementById('gameModal');
+const title = document.getElementById('modalTitle');
+const msg = document.getElementById('modalMessage');
+const rankDisplay = document.getElementById('rankDisplay');
+
+dailyTotalTime = (Date.now() - dailyStartTime) / 1000;
+
+try {
+await db.ref('dailyBingo/' + dailyDateKey + '/leaderboard').push({
+username: dailyUsername,
+score: score,
+time: dailyTotalTime
+});
+await showDailyLeaderboard();
+} catch (error) {
+console.error('Failed to submit/fetch daily leaderboard:', error);
+dailyLeaderboardList.innerHTML = '<li>Leaderboard unavailable right now.</li>';
+}
+
+title.textContent = "DAILY BINGO";
+title.style.color = "#2962ff";
+msg.textContent = `Your Score: ${score} | Time: ${dailyTotalTime.toFixed(1)}s`;
+rankDisplay.parentElement.classList.add('hidden');
+msg.classList.add('hidden');
+dailyLeaderboard.classList.remove('hidden');
+document.getElementById('shareBtn').style.display = 'none';
+document.getElementById('modalRestartBtn').style.display = 'inline-block';
+modal.classList.remove('hidden');
+return;
+}
+
 // SINGLE PLAYER
 targetEl.textContent = isWin ? "Victory!" : "Defeat";
 const modal = document.getElementById('gameModal');
 const title = document.getElementById('modalTitle');
 const msg = document.getElementById('modalMessage');
 const rankDisplay = document.getElementById('rankDisplay');
+
+rankDisplay.parentElement.classList.remove('hidden');
+msg.classList.remove('hidden');
+dailyLeaderboard.classList.add('hidden');
 
 rankDisplay.textContent = getCricketRank(score);
 
@@ -697,7 +874,7 @@ if (Date.now() < end) requestAnimationFrame(frame);
 // Controls
 
 document.getElementById('freeHitBtn').addEventListener('click', () => {
-if (isGameOver || hasUsedFreeHit) return;
+if (isGameOver || hasUsedFreeHit || isDailyMode) return;
 
 clearInterval(timerInterval);
 
@@ -748,11 +925,29 @@ document.getElementById('quitBtn').addEventListener('click', () => {
 isGameOver = true;
 clearInterval(timerInterval);
 if (gameMode === 'multi') { updateMultiplayerState(true); location.reload(); return; }
+if (isDailyMode) {
+setRuntimeGameData(basePlayers, baseDifficulty, baseAssociations);
+deactivateDailyMode();
+gameMode = 'single';
+levelScreen.classList.remove('hidden');
+gameArea.classList.add('hidden');
+return;
+}
 location.reload();
 });
 
 
-document.getElementById('modalRestartBtn').addEventListener('click', () => location.reload());
+document.getElementById('modalRestartBtn').addEventListener('click', async () => {
+document.getElementById('gameModal').classList.add('hidden');
+dailyLeaderboard.classList.add('hidden');
+document.getElementById('rankDisplay').parentElement.classList.remove('hidden');
+document.getElementById('modalMessage').classList.remove('hidden');
+if (isDailyMode) {
+await startDailyBingo();
+return;
+}
+location.reload();
+});
 
 initGameData();
 

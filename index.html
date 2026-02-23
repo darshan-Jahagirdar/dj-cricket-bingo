@@ -49,10 +49,25 @@
 
             <p id="modalMessage">...</p>
 
+            <div id="dailyLeaderboard" class="hidden">
+                <h3>🌍 Daily Leaderboard</h3>
+                <ol id="dailyLeaderboardList"></ol>
+            </div>
+
             <div class="modal-actions">
                 <button id="shareBtn" class="btn whatsapp-btn">📲 Share Result</button>
                 <button id="modalRestartBtn" class="btn primary">Play Again</button>
             </div>
+        </div>
+    </div>
+
+    <div id="usernameModal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h2>Enter Username</h2>
+            <input id="dailyUsernameInput" maxlength="15" placeholder="Your Name">
+            <button id="startDailyBtn" class="btn primary full-width">
+                Start Daily
+            </button>
         </div>
     </div>
 
@@ -87,6 +102,10 @@
         </header>
 
         <div id="levelSelection" class="level-select-box">
+            <button id="dailyBingoBtn" class="btn primary full-width">
+                📅 Daily Bingo
+            </button>
+
             <button id="multiplayerBtn" class="btn multi-btn">
                 <span class="icon">⚔️</span> 1v1 Multiplayer <span class="small">(Ranked)</span>
             </button>
