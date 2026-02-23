@@ -649,17 +649,26 @@ availablePlayers = activePool.filter(p =>
 !gridIds.has(p.id)
 );
 }
-const validCandidates = availablePlayers.filter(candidate => {
+let candidatePool;
+
+if (isDailyMode) {
+candidatePool = availablePlayers;
+} else {
+candidatePool = availablePlayers.filter(candidate => {
 if (!dbAssociations[candidate.id]) return false;
-return unclicked.some(tile => dbAssociations[candidate.id][tile.id] === true);
+return unclicked.some(tile =>
+dbAssociations[candidate.id][tile.id] === true
+);
 });
 
-if (validCandidates.length === 0) {
+if (candidatePool.length === 0) {
 handleGameComplete(false, "Deck exhausted!");
 return;
 }
+}
 
-const selectedTarget = validCandidates[Math.floor(rng() * validCandidates.length)];
+const selectedTarget =
+candidatePool[Math.floor(rng() * candidatePool.length)];
 
 currentPlayer = selectedTarget;
 usedTargets.add(currentPlayer.id);
@@ -957,6 +966,7 @@ location.reload();
 });
 
 initGameData();
+
 
 
 
