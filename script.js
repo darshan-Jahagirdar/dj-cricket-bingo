@@ -450,7 +450,7 @@ if (!isDailyMode) return;
 isDailyMode = false;
 dailyDateKey = "";
 dailyTotalTime = 0;
-setRuntimeGameData(basePlayers, baseDifficulty, baseAssociations);
+setRuntimeGameData(basePlayers, baseDifficulty,  baseAssociations);
 }
 
 async function startDailyBingo() {
@@ -467,7 +467,7 @@ gameMode = 'single';
 return;
 }
 
-setRuntimeGameData(deck.players, deck.difficulty, deck.associations);
+setRuntimeGameData(deck.players, deck.difficulty, deck.associations.merged);
 activePool = Object.keys(deck.players).map(id => ({ id, ...(deck.players[id] || {}) })).filter(player => player && player.id && player.name);
 
 turnsLeft = 16;
@@ -966,6 +966,7 @@ location.reload();
 });
 
 initGameData();
+
 
 
 
