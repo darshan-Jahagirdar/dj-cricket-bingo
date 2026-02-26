@@ -135,6 +135,8 @@ let dailyDateKey = "";
 let basePlayers = {};
 let baseDifficulty = {};
 let baseAssociations = {};
+let dailyTargetQueue = [];
+let dailyGridIds = [];
 
 // UI Elements
 const levelScreen = document.getElementById('levelSelection');
@@ -451,6 +453,8 @@ isDailyMode = false;
 dailyDateKey = "";
 dailyTotalTime = 0;
 setRuntimeGameData(basePlayers, baseDifficulty,  baseAssociations);
+dailyTargetQueue = [];
+dailyGridIds = [];
 }
 
 async function startDailyBingo() {
@@ -460,20 +464,29 @@ try {
     const deckSnap = await db.ref('dailyBingo/' + dailyDateKey + '/deck').once('value');
     const deck = deckSnap.val();
 
-    if (!deck || !deck.players || !deck.difficulty || !deck.associations) {
+    if (!deck || !deck.players || !deck.difficulty || !deck.associations || !Array.isArray(deck.dailyGrid) || !Array.isArray(deck.dailyTargets)) {
         alert("Today's grid isn't ready yet!");
         deactivateDailyMode();
         gameMode = 'single';
         return;
     }
 
-    setRuntimeGameData(deck.players, deck.difficulty, deck.associations.merged); 
-    
+    if (deck.dailyGrid.length !== 16 || deck.dailyTargets.length !== 16) {
+        alert("Today's deck is invalid. Please try again later.");
+        deactivateDailyMode();
+        gameMode = 'single';
+        return;
+    }
+
+    setRuntimeGameData(deck.players, deck.difficulty, deck.associations.merged);
+
+    dailyGridIds = [...deck.dailyGrid];
+    dailyTargetQueue = [...deck.dailyTargets];
     activePool = Object.keys(deck.players).map(id => ({ id, ...(deck.players[id] || {}) })).filter(player => player && player.id && player.name);
 
     turnsLeft = 16;
     skipsLeft = 0;
-    hasUsedFreeHit = true; 
+    hasUsedFreeHit = true;
 
     const freeHitBtn = document.getElementById('freeHitBtn');
     freeHitBtn.disabled = true;
@@ -482,13 +495,6 @@ try {
     skipsSpan.textContent = '0';
 
     dailyStartTime = Date.now();
-
-    // --- THE SEED FIX: Ensures everyone globally gets the exact same Daily Grid! ---
-    const today = new Date();
-    const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-    const seededRng = new SeededRandom(dateSeed);
-    rng = () => seededRng.next();
-    // -----------------------------------------------------------------------------
 
     startGame('daily');
 } catch (error) {
@@ -616,7 +622,14 @@ handleGameComplete(false, "Not enough player data loaded!");
 return;
 }
 
-const selectedGridPlayers = shuffle([...uniquePool]).slice(0, 16);
+const selectedGridPlayers = isDailyMode
+? dailyGridIds.map(id => ({ id, ...(dbPlayers[id] || {}) })).filter(player => player && player.id && player.name)
+: shuffle([...uniquePool]).slice(0, 16);
+
+if (isDailyMode && selectedGridPlayers.length !== 16) {
+handleGameComplete(false, "Daily grid data is invalid!");
+return;
+}
 
 selectedGridPlayers.forEach((player, index) => {
 const cellData = { id: player.id, index, content: player.name, clicked: false, status: null };
@@ -646,26 +659,48 @@ function pickNextTarget() {
       return;
   }
 
-  // --- THE TARGET FIX: Never pick a player sitting on the grid ---
-  const gridIds = new Set(gridData.map(c => c.id));
-  let availablePlayers = activePool.filter(p => !usedTargets.has(p.id) && !gridIds.has(p.id));
+  if (isDailyMode) {
+      if (dailyTargetQueue.length === 0) {
+          if (unclicked.length === 0) {
+              handleGameComplete(true);
+          } else {
+              handleGameComplete(false, "Daily targets exhausted.");
+          }
+          return;
+      }
 
-  // Only pick targets that have a valid connection to an UNCLICKED tile
-  let candidatePool = availablePlayers.filter(candidate => {
-      if (!dbAssociations[candidate.id]) return false;
-      return unclicked.some(tile => dbAssociations[candidate.id][tile.id] === true);
-  });
+      const nextTargetId = dailyTargetQueue.shift();
+      const targetPlayer = dbPlayers[nextTargetId];
+      if (!targetPlayer) {
+          handleGameComplete(false, "Daily target data is invalid!");
+          return;
+      }
 
-  if (candidatePool.length === 0) {
-      handleGameComplete(false, "Deck exhausted! Not enough connections.");
-      return;
+      currentPlayer = { id: nextTargetId, ...targetPlayer };
+      usedTargets.add(currentPlayer.id);
+      turnsLeft--;
+  } else {
+      // --- THE TARGET FIX: Never pick a player sitting on the grid ---
+      const gridIds = new Set(gridData.map(c => c.id));
+      let availablePlayers = activePool.filter(p => !usedTargets.has(p.id) && !gridIds.has(p.id));
+
+      // Only pick targets that have a valid connection to an UNCLICKED tile
+      let candidatePool = availablePlayers.filter(candidate => {
+          if (!dbAssociations[candidate.id]) return false;
+          return unclicked.some(tile => dbAssociations[candidate.id][tile.id] === true);
+      });
+
+      if (candidatePool.length === 0) {
+          handleGameComplete(false, "Deck exhausted! Not enough connections.");
+          return;
+      }
+
+      const selectedTarget = candidatePool[Math.floor(rng() * candidatePool.length)];
+
+      currentPlayer = selectedTarget;
+      usedTargets.add(currentPlayer.id);
+      turnsLeft--;
   }
-
-  const selectedTarget = candidatePool[Math.floor(rng() * candidatePool.length)];
-
-  currentPlayer = selectedTarget;
-  usedTargets.add(currentPlayer.id);
-  turnsLeft--;
 
   targetEl.textContent = currentPlayer.name;
   turnsEl.textContent = turnsLeft;

@@ -1,0 +1,42 @@
+name: Data Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'daily-source.json'
+      - 'master-deck.json'
+      - 'compileDaily.js'
+      - 'compileGraph.js'
+
+jobs:
+  compile-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate daily-source.json
+        run: |
+          node -e "const fs=require('fs'); const file='daily-source.json'; let data; try { data=JSON.parse(fs.readFileSync(file,'utf8')); } catch (e) { console.error('Invalid JSON in daily-source.json'); process.exit(1); } if (!Array.isArray(data) || data.length < 32) { console.error('daily-source.json must contain an array with at least 32 players'); process.exit(1); } console.log('daily-source.json is valid with', data.length, 'players.');"
+
+      - name: Compile graph payload
+        run: node compileGraph.js
+
+      - name: Compile daily payload
+        run: node compileDaily.js
+
+      - name: Auto-commit generated data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(data): regenerate firebase-ready and daily-ready payloads'
+          file_pattern: firebase-ready.json daily-ready.json

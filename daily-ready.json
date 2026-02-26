@@ -921,7 +921,43 @@
               "p_shimron_hetmyer": true
             }
           }
-        }
+        },
+        "dailyGrid": [
+          "p_trent_boult",
+          "p_david_miller",
+          "p_devon_conway",
+          "p_mitchell_starc",
+          "p_andre_russell",
+          "p_hardik_pandya",
+          "p_quinton_de_kock",
+          "p_krunal_pandya",
+          "p_sunil_narine",
+          "p_bhuvneshwar_kumar",
+          "p_eoin_morgan",
+          "p_ajinkya_rahane",
+          "p_ravichandran_ashwin",
+          "p_rashid_khan",
+          "p_ruturaj_gaikwad",
+          "p_dwayne_bravo"
+        ],
+        "dailyTargets": [
+          "p_glenn_maxwell",
+          "p_kagiso_rabada",
+          "p_faf_du_plessis",
+          "p_nicholas_pooran",
+          "p_marcus_stoinis",
+          "p_mohammed_shami",
+          "p_shimron_hetmyer",
+          "p_kuldeep_yadav",
+          "p_jos_buttler",
+          "p_shane_watson",
+          "p_umesh_yadav",
+          "p_suryakumar_yadav",
+          "p_shikhar_dhawan",
+          "p_aaron_finch",
+          "p_yuzvendra_chahal",
+          "p_shreyas_iyer"
+        ]
       }
     }
   }
