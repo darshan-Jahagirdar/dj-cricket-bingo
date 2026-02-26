@@ -1,0 +1,51 @@
+{
+  "dailyBingo": {
+    "2026-02-23": {
+      "deck": {
+        "players": {
+          "parthiv": { "name": "Parthiv Patel" },
+          "manish": { "name": "Manish Pandey" },
+          "rahane": { "name": "Ajinkya Rahane" },
+          "mccullum": { "name": "Brendon McCullum" },
+          "morkel": { "name": "Albie Morkel" },
+          "rp_singh": { "name": "RP Singh" },
+          "steyn": { "name": "Dale Steyn" },
+          "malinga": { "name": "Lasith Malinga" },
+          "bailey": { "name": "George Bailey" },
+          "hodge": { "name": "Brad Hodge" },
+          "samuel": { "name": "Marlon Samuels" },
+          "pollard": { "name": "Kieron Pollard" },
+          "faulkner": { "name": "James Faulkner" },
+          "finch": { "name": "Aaron Finch" },
+          "jadeja": { "name": "Ravindra Jadeja" },
+          "ashwin": { "name": "Ravichandran Ashwin" }
+        },
+        "difficulty": {
+          "easy": ["jadeja", "ashwin", "malinga", "finch"],
+          "medium": ["rahane", "pollard", "mccullum", "steyn", "manish", "parthiv"],
+          "hard": ["hodge", "bailey", "samuel", "rp_singh", "faulkner", "morkel"]
+        },
+        "associations": {
+          "merged": {
+            "parthiv": { "jadeja": true, "ashwin": true, "manish": true },
+            "manish": { "parthiv": true, "rahane": true },
+            "jadeja": { "parthiv": true, "ashwin": true, "rahane": true },
+            "ashwin": { "parthiv": true, "jadeja": true },
+            "rahane": { "mccullum": true, "faulkner": true, "jadeja": true, "manish": true },
+            "mccullum": { "rahane": true, "finch": true },
+            "finch": { "mccullum": true, "faulkner": true },
+            "morkel": { "rp_singh": true, "steyn": true },
+            "rp_singh": { "morkel": true, "steyn": true },
+            "steyn": { "rp_singh": true, "morkel": true },
+            "malinga": { "pollard": true },
+            "pollard": { "malinga": true, "samuel": true },
+            "samuel": { "pollard": true },
+            "hodge": { "bailey": true },
+            "bailey": { "hodge": true },
+            "faulkner": { "rahane": true, "finch": true }
+          }
+        }
+      }
+    }
+  }
+}
