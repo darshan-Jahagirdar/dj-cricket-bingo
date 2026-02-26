@@ -132,6 +132,14 @@ function buildDailyDeck() {
 
 const solvableDeck = buildDailyDeck();
 
+if (!Array.isArray(solvableDeck.dailyGrid) || solvableDeck.dailyGrid.length !== 16) {
+  throw new Error('Compiler error: dailyGrid must contain exactly 16 player IDs.');
+}
+
+if (!Array.isArray(solvableDeck.dailyTargets) || solvableDeck.dailyTargets.length !== 16) {
+  throw new Error('Compiler error: dailyTargets must contain exactly 16 player IDs.');
+}
+
 const finalJSON = {
   dailyBingo: {
     [today]: {
