@@ -464,7 +464,7 @@ try {
     const deckSnap = await db.ref('dailyBingo/' + dailyDateKey + '/deck').once('value');
     const deck = deckSnap.val();
 
-    if (!deck || !deck.players || !deck.difficulty || !deck.associations || !Array.isArray(deck.dailyGrid) || !Array.isArray(deck.dailyTargets)) {
+    if (!deck || !deck.players || !deck.difficulty || !deck.associations || !deck.dailyGrid || !deck.dailyTargets) {
         alert("Today's grid isn't ready yet!");
         deactivateDailyMode();
         gameMode = 'single';
