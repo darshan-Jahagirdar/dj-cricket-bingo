@@ -1,6 +1,6 @@
 {
   "dailyBingo": {
-    "2026-02-26": {
+    "2026-02-28": {
       "deck": {
         "players": {
           "p_quinton_de_kock": {
@@ -921,7 +921,43 @@
               "p_shimron_hetmyer": true
             }
           }
-        }
+        },
+        "dailyGrid": [
+          "p_dwayne_bravo",
+          "p_eoin_morgan",
+          "p_mitchell_starc",
+          "p_aaron_finch",
+          "p_jos_buttler",
+          "p_andre_russell",
+          "p_rashid_khan",
+          "p_shane_watson",
+          "p_david_miller",
+          "p_marcus_stoinis",
+          "p_ruturaj_gaikwad",
+          "p_sunil_narine",
+          "p_glenn_maxwell",
+          "p_kagiso_rabada",
+          "p_shikhar_dhawan",
+          "p_kuldeep_yadav"
+        ],
+        "dailyTargets": [
+          "p_nicholas_pooran",
+          "p_bhuvneshwar_kumar",
+          "p_krunal_pandya",
+          "p_quinton_de_kock",
+          "p_suryakumar_yadav",
+          "p_yuzvendra_chahal",
+          "p_faf_du_plessis",
+          "p_ravichandran_ashwin",
+          "p_devon_conway",
+          "p_hardik_pandya",
+          "p_mohammed_shami",
+          "p_shreyas_iyer",
+          "p_trent_boult",
+          "p_umesh_yadav",
+          "p_ajinkya_rahane",
+          "p_shimron_hetmyer"
+        ]
       }
     }
   }

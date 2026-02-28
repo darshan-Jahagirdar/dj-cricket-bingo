@@ -135,6 +135,9 @@ let dailyDateKey = "";
 let basePlayers = {};
 let baseDifficulty = {};
 let baseAssociations = {};
+let precomputedDailyGrid = [];
+let precomputedDailyTargets = [];
+let dailyTargetIndex = 0;
 
 // UI Elements
 const levelScreen = document.getElementById('levelSelection');
@@ -460,7 +463,8 @@ try {
     const deckSnap = await db.ref('dailyBingo/' + dailyDateKey + '/deck').once('value');
     const deck = deckSnap.val();
 
-    if (!deck || !deck.players || !deck.difficulty || !deck.associations) {
+    // Security check now demands the dailyGrid and dailyTargets
+    if (!deck || !deck.players || !deck.difficulty || !deck.associations || !deck.dailyGrid || !deck.dailyTargets) {
         alert("Today's grid isn't ready yet!");
         deactivateDailyMode();
         gameMode = 'single';
@@ -469,6 +473,10 @@ try {
 
     setRuntimeGameData(deck.players, deck.difficulty, deck.associations.merged); 
     
+    precomputedDailyGrid = deck.dailyGrid;
+    precomputedDailyTargets = deck.dailyTargets;
+    dailyTargetIndex = 0;
+
     activePool = Object.keys(deck.players).map(id => ({ id, ...(deck.players[id] || {}) })).filter(player => player && player.id && player.name);
 
     turnsLeft = 16;
@@ -482,21 +490,12 @@ try {
     skipsSpan.textContent = '0';
 
     dailyStartTime = Date.now();
-
-    // --- THE SEED FIX: Ensures everyone globally gets the exact same Daily Grid! ---
-    const today = new Date();
-    const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-    const seededRng = new SeededRandom(dateSeed);
-    rng = () => seededRng.next();
-    // -----------------------------------------------------------------------------
-
     startGame('daily');
 } catch (error) {
     console.error('Failed to load daily deck:', error);
     alert("Couldn't load Daily Bingo. Please try again.");
     deactivateDailyMode();
     gameMode = 'single';
-    setRuntimeGameData(basePlayers, baseDifficulty, baseAssociations);
 }
 }
 
@@ -604,82 +603,96 @@ return array;
 }
 
 function generateGrid() {
-gridEl.innerHTML = "";
-gridData = [];
+    gridEl.innerHTML = "";
+    gridData = [];
 
-const uniquePool = activePool.filter((player, index, self) =>
-index === self.findIndex((t) => (t.id === player.id))
-);
+    let selectedGridPlayers = [];
 
-if (uniquePool.length < 16) {
-handleGameComplete(false, "Not enough player data loaded!");
-return;
-}
+    // SMART ENGINE: Use precomputed grid for Daily Mode
+    if (isDailyMode) {
+        selectedGridPlayers = precomputedDailyGrid.map(id => ({ id, ...(dbPlayers[id] || {}) }));
+    } else {
+        const uniquePool = activePool.filter((player, index, self) =>
+            index === self.findIndex((t) => (t.id === player.id))
+        );
+        if (uniquePool.length < 16) {
+            handleGameComplete(false, "Not enough player data loaded!");
+            return;
+        }
+        selectedGridPlayers = shuffle([...uniquePool]).slice(0, 16);
+    }
 
-const selectedGridPlayers = shuffle([...uniquePool]).slice(0, 16);
+    selectedGridPlayers.forEach((player, index) => {
+        const cellData = { id: player.id, index, content: player.name, clicked: false, status: null };
+        gridData.push(cellData);
 
-selectedGridPlayers.forEach((player, index) => {
-const cellData = { id: player.id, index, content: player.name, clicked: false, status: null };
-gridData.push(cellData);
-
-const cell = document.createElement('div');
-cell.classList.add('grid-cell');
-cell.textContent = player.name;
-cell.addEventListener('click', () => handleCellClick(cell, cellData));
-gridEl.appendChild(cell);
-});
+        const cell = document.createElement('div');
+        cell.classList.add('grid-cell');
+        cell.textContent = player.name;
+        cell.addEventListener('click', () => handleCellClick(cell, cellData));
+        gridEl.appendChild(cell);
+    });
 }
 
 function pickNextTarget() {
-  clearInterval(timerInterval);
-  if (isGameOver) return;
+    clearInterval(timerInterval);
+    if (isGameOver) return;
 
-  const unclicked = gridData.filter(c => !c.clicked);
-  
-  // In daily mode, we run out when unclicked is 0.
-  if (!isDailyMode && unclicked.length === 0) {
-      handleGameComplete(true);
-      return;
-  }
-  if (turnsLeft <= 0) {
-      handleGameComplete(false, "Ran out of turns!");
-      return;
-  }
+    const unclicked = gridData.filter(c => !c.clicked);
+    
+    if (!isDailyMode && unclicked.length === 0) {
+        handleGameComplete(true);
+        return;
+    }
+    if (turnsLeft <= 0) {
+        handleGameComplete(false, "Ran out of turns!");
+        return;
+    }
 
-  // --- THE TARGET FIX: Never pick a player sitting on the grid ---
-  const gridIds = new Set(gridData.map(c => c.id));
-  let availablePlayers = activePool.filter(p => !usedTargets.has(p.id) && !gridIds.has(p.id));
+    // SMART ENGINE: Shift through precomputed targets sequentially
+    if (isDailyMode) {
+        if (dailyTargetIndex >= precomputedDailyTargets.length) {
+            handleGameComplete(true);
+            return;
+        }
+        let nextId = precomputedDailyTargets[dailyTargetIndex];
+        dailyTargetIndex++;
+        currentPlayer = { id: nextId, ...dbPlayers[nextId] };
+    } else {
+        const gridIds = new Set(gridData.map(c => c.id));
+        let availablePlayers = activePool.filter(p => !usedTargets.has(p.id) && !gridIds.has(p.id));
 
-  // Only pick targets that have a valid connection to an UNCLICKED tile
-  let candidatePool = availablePlayers.filter(candidate => {
-      if (!dbAssociations[candidate.id]) return false;
-      return unclicked.some(tile => dbAssociations[candidate.id][tile.id] === true);
-  });
+        let candidatePool = availablePlayers.filter(candidate => {
+            if (!dbAssociations[candidate.id]) return false;
+            return unclicked.some(tile => dbAssociations[candidate.id][tile.id] === true);
+        });
 
-  if (candidatePool.length === 0) {
-      handleGameComplete(false, "Deck exhausted! Not enough connections.");
-      return;
-  }
+        if (candidatePool.length === 0) {
+            handleGameComplete(false, "Deck exhausted! Not enough connections.");
+            return;
+        }
 
-  const selectedTarget = candidatePool[Math.floor(rng() * candidatePool.length)];
+        currentPlayer = candidatePool[Math.floor(rng() * candidatePool.length)];
+    }
 
-  currentPlayer = selectedTarget;
-  usedTargets.add(currentPlayer.id);
-  turnsLeft--;
+    usedTargets.add(currentPlayer.id);
+    turnsLeft--;
 
-  targetEl.textContent = currentPlayer.name;
-  turnsEl.textContent = turnsLeft;
-  messageEl.textContent = `Find connection for: ${currentPlayer.name}`;
-  messageEl.className = "message-area";
-  messageEl.style.color = "#555";
+    targetEl.textContent = currentPlayer.name;
+    turnsEl.textContent = turnsLeft;
+    messageEl.textContent = `Find connection for: ${currentPlayer.name}`;
+    messageEl.className = "message-area";
+    messageEl.style.color = "#555";
 
-  if (isDailyMode) timeLimit = 10;
-  if (timeLimit > 0) startTimer(timeLimit);
-  else {
-      timerEl.textContent = "∞";
-      timerEl.classList.remove("timer-warning");
-  }
+    if (isDailyMode) timeLimit = 10;
+    if (timeLimit > 0) startTimer(timeLimit);
+    else {
+        timerEl.textContent = "∞";
+        timerEl.classList.remove("timer-warning");
+    }
 }
+
+
 
 function startTimer(seconds) {
 currentTime = seconds;
